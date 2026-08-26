@@ -1,0 +1,5 @@
+app.md
+public/assets/full/
+dist-ssr/
+node_modules/
+.git/

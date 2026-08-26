@@ -1,0 +1,49 @@
+import { renderToStaticMarkup } from "react-dom/server";
+import { ROUTES, type Route } from "./routes";
+import { SITE } from "./data";
+
+const esc = (value: string) => value
+  .replaceAll("&", "&amp;")
+  .replaceAll('"', "&quot;")
+  .replaceAll("<", "&lt;")
+  .replaceAll(">", "&gt;");
+
+const json = (value: unknown) => JSON.stringify(value).replaceAll("<", "\\u003c");
+
+export function renderRoute(route: Route) {
+  const body = renderToStaticMarkup(route.element);
+  const type = route.meta.type ?? "website";
+  const jsonLd = route.meta.jsonLd
+    .map((item) => `<script type="application/ld+json">${json(item)}</script>`)
+    .join("");
+
+  return `<!doctype html>
+<html lang="en-US">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${esc(route.meta.title)}</title>
+  <meta name="description" content="${esc(route.meta.description)}">
+  <meta name="theme-color" content="#081426">
+  <meta name="apple-itunes-app" content="app-id=${SITE.appId}">
+  <link rel="canonical" href="${esc(route.meta.canonical)}">
+  <link rel="icon" href="/assets/icon.png">
+  <link rel="apple-touch-icon" href="/assets/icon.png">
+  <link rel="stylesheet" href="/style.css">
+  <meta property="og:type" content="${type}">
+  <meta property="og:site_name" content="Clarity Chat">
+  <meta property="og:title" content="${esc(route.meta.title)}">
+  <meta property="og:description" content="${esc(route.meta.description)}">
+  <meta property="og:url" content="${esc(route.meta.canonical)}">
+  <meta property="og:image" content="${esc(route.meta.image)}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="${esc(route.meta.title)}">
+  <meta name="twitter:description" content="${esc(route.meta.description)}">
+  <meta name="twitter:image" content="${esc(route.meta.image)}">
+  ${jsonLd}
+</head>
+<body>${body}</body>
+</html>`;
+}
+
+export { ROUTES };
