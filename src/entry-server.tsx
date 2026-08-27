@@ -42,7 +42,12 @@ export function renderRoute(route: Route) {
   <meta name="twitter:image" content="${esc(route.meta.image)}">
   ${jsonLd}
 </head>
-<body>${body}</body>
+<body>${body}
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+</body>
 </html>`;
 }
 
