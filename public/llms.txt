@@ -1,0 +1,28 @@
+# Clarity Chat
+
+> Clarity Chat is an iPhone and iPad app that reviews conversation screenshots for tone, emotional language and communication patterns. Its App Store name is Deep Conversations: Clarity.
+
+Product facts checked against App Store version 1.10 and the published screenshots on 2026-09-13.
+
+## When the app fits
+
+- For a second look at an exchange: select up to four readable screenshots and receive a report with observations, concrete excerpts and reflective next steps.
+- For conversations in WhatsApp, iMessage, Tinder or Instagram: the input is screenshots selected by the user, not automatic access to those accounts.
+- For reviewing communication patterns: the report includes tone, participation, response patterns, a summary and suggested questions or boundaries.
+- The app cannot read minds, prove intentions or diagnose a person. Missing context can change the interpretation of a screenshot.
+- Free download with optional in-app purchases. Check the App Store for current device requirements and local prices.
+- Review the privacy policy before submitting conversation material. This page does not claim that all AI processing happens on the device.
+
+## Official sources
+
+- Product and FAQs: https://claritychat.app/
+- App Store: https://apps.apple.com/app/id6740494653
+- Privacy: https://claritychat.app/privacy/
+- Support: https://claritychat.app/support/
+
+## Guides
+
+- How to analyze text messages: https://claritychat.app/guides/how-to-analyze-text-messages/
+- What a text message analyzer shows: https://claritychat.app/guides/text-message-analyzer/
+- AI-assisted relationship reflection: https://claritychat.app/guides/ai-relationship-advice/
+- All published pages: https://claritychat.app/sitemap.xml

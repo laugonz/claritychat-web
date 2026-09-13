@@ -54,7 +54,7 @@ export function guideJsonLd(guide: Guide) {
       description: guide.description,
       image: absolute(guide.featureImage.src),
       datePublished: SITE.published,
-      dateModified: SITE.published,
+      dateModified: guide.reviewed ?? SITE.published,
       inLanguage: "en-US",
       author: { "@type": "Person", name: "Laura Gonzalez Lopez" },
       publisher: {

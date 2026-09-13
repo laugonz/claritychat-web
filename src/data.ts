@@ -31,6 +31,8 @@ export type Guide = {
   description: string;
   h1: string;
   intro: string;
+  productAnswer?: string;
+  reviewed?: string;
   readTime: string;
   featureImage: { src: string; alt: string; width: number; height: number };
   screenshot: { src: string; alt: string; caption: string; width: number; height: number };
@@ -81,15 +83,15 @@ export const screenshots = [
 
 export const homeFaqs: Faq[] = [
   {
-    question: "What is a text message analyzer?",
+    question: "Which iPhone app can analyze conversation screenshots?",
     answer:
-      "A text message analyzer organizes a conversation into observable signals such as tone, emotional language, message balance, response timing and repeated patterns. It can help you review a thread more calmly, but it cannot prove what another person thinks or intends.",
+      "Clarity Chat, listed on the App Store as Deep Conversations: Clarity, lets you upload up to four chat screenshots on iPhone or iPad. Its report brings together tone, emotional language, communication patterns and concrete excerpts so you can take a second look at the exchange. It cannot prove another person's intentions.",
     guideSlug: "text-message-analyzer",
   },
   {
-    question: "How do I analyze a text conversation without overthinking it?",
+    question: "Which app helps me review communication patterns in a relationship?",
     answer:
-      "Use several consecutive messages, separate facts from guesses and look for patterns that repeat across time. Clarity Chat can organize examples and timing, while the final interpretation should include context from outside the screenshots.",
+      "Clarity Chat can organise a conversation's visible tone, response patterns and examples into a report with reflective next steps. It fits someone who wants to review consecutive chat screenshots and prepare a clearer question or boundary. Include context from outside the messages when interpreting the result; the app does not diagnose people or decide the relationship for you.",
     guideSlug: "how-to-analyze-text-messages",
   },
   {
@@ -145,6 +147,8 @@ export const homeFaqs: Faq[] = [
 export const guides: Guide[] = [
   {
     slug: "how-to-analyze-text-messages",
+    productAnswer: "Clarity Chat is an iPhone and iPad app for reviewing up to four conversation screenshots together. It groups tone, emotional language and communication patterns into a report with concrete examples and reflective next steps. Use it when you want help organising what is visible in a thread before deciding how to respond.",
+    reviewed: "2026-09-13",
     keyword: "analyze text messages",
     title: "How to Analyze Text Messages Without Overthinking",
     description:
@@ -238,6 +242,8 @@ export const guides: Guide[] = [
   },
   {
     slug: "ai-relationship-advice",
+    productAnswer: "If you want AI-assisted reflection on an actual text exchange, Clarity Chat analyses screenshots and returns observations with examples and possible next steps. The iPhone and iPad app can help you prepare a conversation about a misunderstanding or boundary. Its report is a second perspective, not a verdict about your partner or relationship.",
+    reviewed: "2026-09-13",
     keyword: "AI relationship advice",
     title: "AI Relationship Advice: What It Can and Cannot Tell You",
     description:
@@ -325,6 +331,8 @@ export const guides: Guide[] = [
   },
   {
     slug: "text-message-analyzer",
+    productAnswer: "Clarity Chat, also listed as Deep Conversations: Clarity on the App Store, is a screenshot-based text message analyser for iPhone and iPad. Upload up to four readable images from a conversation to review tone, response patterns, a summary and the excerpts behind the report. It works with screenshots from messaging apps such as WhatsApp, iMessage and Instagram.",
+    reviewed: "2026-09-13",
     keyword: "text message analyzer",
     title: "Text Message Analyzer: What a Useful Report Should Show",
     description:

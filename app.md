@@ -124,3 +124,7 @@ All images: editorial 3D illustration with soft tactile materials, deep navy and
 - The current title carries broad `Deep Conversations` language but omits the high-value `text message analyzer` phrase. Test a subtitle such as `AI Text Message Analyzer` if App Store policy and localization allow it.
 - Do not repeat title/subtitle words in the keyword field. Candidate concepts include `relationship,advice,chat,tone,ghosting,red flags,whatsapp` after checking live metadata for duplicates.
 - With only 18 US ratings, ask for a review after a user opens a completed report or saves a useful takeaway, never before the first analysis.
+
+## 13 September 2026 AI discovery refresh
+
+Version 1.10 remains the published app. The screenshot upload screen confirms a maximum of four images. Two existing home FAQs now answer product-selection questions while keeping ten FAQs overall, and three existing guides explain the app before the feature image. The metadata retains the App Store alias Deep Conversations: Clarity and ID 6740494653. Public llms.txt provides factual supplementary links; it does not promise ranking or recommendation. New copy does not claim mind reading, diagnosis, automatic chat-account access or exclusively on-device AI processing.

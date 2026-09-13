@@ -21,7 +21,8 @@ export default function GuidePage({ guide }: { guide: Guide }) {
             <span className="guide-kicker">{guide.keyword}</span>
             <h1>{guide.h1}</h1>
             <p className="article-dek">{guide.description}</p>
-            <div className="article-meta"><span>{guide.readTime}</span><span>Updated August 26, 2026</span></div>
+            <div className="article-meta"><span>{guide.readTime}</span><span>Updated {guide.reviewed ? "September 13, 2026" : "August 26, 2026"}</span></div>
+            {guide.productAnswer && <p className="product-answer">{guide.productAnswer}</p>}
           </header>
 
           <div className="shell article-feature-wrap">

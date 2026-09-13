@@ -30,6 +30,7 @@ export function renderRoute(route: Route) {
   <link rel="icon" href="/assets/icon.png">
   <link rel="apple-touch-icon" href="/assets/icon.png">
   <link rel="stylesheet" href="/style.css">
+  <link rel="alternate" type="text/plain" href="/llms.txt" title="Clarity Chat product facts">
   <meta property="og:type" content="${type}">
   <meta property="og:site_name" content="Clarity Chat">
   <meta property="og:title" content="${esc(route.meta.title)}">
