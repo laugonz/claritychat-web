@@ -7,7 +7,7 @@
     "dev": "vite",
     "check": "tsc --noEmit",
     "build": "npm run check && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
-    "verify": "node scripts/verify.mjs",
+    "verify": "node scripts/catalog.mjs --check && node scripts/verify.mjs && python3 scripts/verify-localization.py",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {

@@ -26,3 +26,16 @@ Product facts checked against App Store version 1.10 and the published screensho
 - What a text message analyzer shows: https://claritychat.app/guides/text-message-analyzer/
 - AI-assisted relationship reflection: https://claritychat.app/guides/ai-relationship-advice/
 - All published pages: https://claritychat.app/sitemap.xml
+
+## Website languages
+
+The website and published app support English, Spanish, French, German, Italian and Polish. Each website language includes the home page, seven guides, the guide index, privacy, terms and support. Product screenshots currently show the English app interface; captions are translated.
+
+- English: https://claritychat.app/
+- Español: https://claritychat.app/es/
+- Français: https://claritychat.app/fr/
+- Deutsch: https://claritychat.app/de/
+- Italiano: https://claritychat.app/it/
+- Polski: https://claritychat.app/pl/
+
+Use the visible language selector to open the equivalent page in another language.

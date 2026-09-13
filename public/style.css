@@ -1457,3 +1457,27 @@ figcaption {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Native disclosure keeps every language reachable without client JavaScript. */
+.language-picker { position: relative; margin-inline-start: auto; flex: 0 0 auto; }
+.language-picker summary { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--white); font-size: .86rem; font-weight: 650; cursor: pointer; list-style: none; }
+.language-picker summary::-webkit-details-marker { display: none; }
+.language-picker ul { position: absolute; inset-inline-end: 0; top: 100%; min-width: 180px; margin: 8px 0 0; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); box-shadow: var(--shadow-medium); list-style: none; }
+.language-picker a { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 8px 12px; border-radius: 8px; font-size: .94rem; text-decoration: none; }
+.language-picker a:hover, .language-picker a[aria-current] { background: var(--teal-pale); }
+.screenshot-language-note { color: var(--ink-soft); font-size: .86rem; }
+.hero-copy, .feature-card, .guide-card-body, .steps-grid article { min-width: 0; overflow-wrap: anywhere; }
+.breadcrumbs { flex-wrap: wrap; }
+html:not([lang="en"]) .hero h1 { font-size: clamp(2.7rem, 5vw, 5.7rem); }
+@media (max-width: 1200px) { .header-inner nav { display: none; } }
+@media (max-width: 800px) {
+  .header-inner { gap: 10px; }
+  html:not([lang="en"]) .hero h1 { font-size: clamp(2.6rem, 11vw, 4.8rem); }
+}
+@media (max-width: 360px) {
+  .brand { gap: 6px; font-size: .96rem; }
+  .brand img { width: 36px; height: 36px; }
+  .language-picker summary { padding-inline: 8px; gap: 5px; font-size: .8rem; }
+}
+
+h1, h2, h3 { overflow-wrap: anywhere; }

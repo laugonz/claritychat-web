@@ -78,7 +78,7 @@ Everank/DataForSEO snapshot for United States / English on 2026-08-26. Volume an
 | gaslighting signs | 880 | 0.29 | 40 | Informational | Safety-framed guide; never a diagnosis claim |
 | toxic relationship signs | 4,400 | 0.62 | 8 | Informational | Safety-framed guide; authoritative outbound sources |
 
-Spain and Mexico were measured separately. Their product phrases mostly returned no numeric data; the few reported queries were far smaller than the US English set. The first public cluster therefore targets US English only. Do not blend those Spanish markets into the English figures.
+Spain and Mexico were measured separately. Their product phrases mostly returned no numeric data; the few reported queries were far smaller than the US English set. The original public cluster targeted US English. The September language expansion translates that content; it does not establish search volumes or ranking opportunities in the additional markets. Do not blend those Spanish markets into the English figures.
 
 ## SERP validation
 
@@ -128,3 +128,11 @@ All images: editorial 3D illustration with soft tactile materials, deep navy and
 ## 13 September 2026 AI discovery refresh
 
 Version 1.10 remains the published app. The screenshot upload screen confirms a maximum of four images. Two existing home FAQs now answer product-selection questions while keeping ten FAQs overall, and three existing guides explain the app before the feature image. The metadata retains the App Store alias Deep Conversations: Clarity and ID 6740494653. Public llms.txt provides factual supplementary links; it does not promise ranking or recommendation. New copy does not claim mind reading, diagnosis, automatic chat-account access or exclusively on-device AI processing.
+
+## 13 September 2026 website languages
+
+The published [App Store listing](https://apps.apple.com/app/id6740494653), checked on 2026-09-13, supports English, Spanish, French, German, Italian and Polish. The website now mirrors these six languages: English keeps `/`; the others use `/es/`, `/fr/`, `/de/`, `/it/` and `/pl/`.
+
+Each language contains the homepage, guide index, seven guides, privacy, terms and support: 72 static pages, including 42 guides. A native header selector links to the equivalent page in every language. Navigation, image descriptions, captions, metadata and structured data are translated. App screenshot pixels remain English and carry a translated explanatory note.
+
+There are 431 source messages per catalog. Public copy was machine-drafted and then edited for meaning, terminology, brand preservation and natural wording; no professional native-speaker certification is claimed. Translation happens at build time, with no visitor-side translation service. See [implementation and verification notes](docs/website-languages-20260913.md).

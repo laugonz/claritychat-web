@@ -39,7 +39,8 @@ function pageUrl(path) {
 
 const files = await walk(dist);
 const htmlFiles = files.filter((path) => extname(path) === ".html");
-if (htmlFiles.length !== 12) failures.push(`Expected 12 HTML pages, found ${htmlFiles.length}.`);
+const { ROUTES } = await import("../dist-ssr/entry-server.js");
+if (htmlFiles.length !== ROUTES.length) failures.push(`Expected ${ROUTES.length} HTML pages, found ${htmlFiles.length}.`);
 
 const seenTitles = new Map();
 const seenDescriptions = new Map();

@@ -3,7 +3,7 @@ export const SITE = {
   url: "https://claritychat.app",
   appId: "6740494653",
   appStoreUrl:
-    "https://apps.apple.com/us/app/deep-conversations-clarity/id6740494653",
+    "https://apps.apple.com/app/id6740494653",
   email: "laugonz@me.com",
   description:
     "Upload chat screenshots and review tone, emotions, response patterns and concrete examples with Clarity Chat. Private, reflective and judgment-free.",

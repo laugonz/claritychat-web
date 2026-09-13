@@ -3,4 +3,6 @@ import { findRoute } from "./routes";
 import "../public/style.css";
 
 const root = document.getElementById("root");
-if (root) createRoot(root).render(findRoute(window.location.pathname).element);
+const route = findRoute(window.location.pathname);
+document.documentElement.lang = route.locale;
+if (root) createRoot(root).render(route.element);

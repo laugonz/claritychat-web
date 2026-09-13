@@ -20,7 +20,7 @@ for (const route of ROUTES) {
   await writeFile(output, renderRoute(route), "utf8");
 }
 
-const urls = ROUTES.map((route) => `  <url>\n    <loc>${route.meta.canonical}</loc>\n    <lastmod>${route.path === "/" ? "2026-09-13" : (route.meta.jsonLd.find(item => item["@type"] === "Article")?.dateModified ?? "2026-08-26")}</lastmod>\n    <changefreq>${route.path.startsWith("/guides/") ? "monthly" : "weekly"}</changefreq>\n    <priority>${route.meta.sitemapPriority}</priority>\n  </url>`).join("\n");
+const urls = ROUTES.map((route) => `  <url>\n    <loc>${route.meta.canonical}</loc>\n    <lastmod>${route.locale !== "en" || route.path === "/" ? "2026-09-13" : (route.meta.jsonLd.find(item => item["@type"] === "Article")?.dateModified ?? "2026-08-26")}</lastmod>\n    <changefreq>${route.basePath.startsWith("/guides/") ? "monthly" : "weekly"}</changefreq>\n    <priority>${route.meta.sitemapPriority}</priority>\n  </url>`).join("\n");
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 
 await writeFile(join(distDir, "sitemap.xml"), sitemap, "utf8");

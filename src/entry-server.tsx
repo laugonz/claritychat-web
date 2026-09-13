@@ -1,3 +1,4 @@
+import { LANGUAGES, localizedPath } from "./i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ROUTES, type Route } from "./routes";
 import { SITE } from "./data";
@@ -18,7 +19,7 @@ export function renderRoute(route: Route) {
     .join("");
 
   return `<!doctype html>
-<html lang="en-US">
+<html lang="${route.locale}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -27,6 +28,9 @@ export function renderRoute(route: Route) {
   <meta name="theme-color" content="#081426">
   <meta name="apple-itunes-app" content="app-id=${SITE.appId}">
   <link rel="canonical" href="${esc(route.meta.canonical)}">
+  ${LANGUAGES.map(({ code }) => `<link rel="alternate" hreflang="${code}" href="${SITE.url}${localizedPath(code, route.basePath)}">`).join("\n  ")}
+  <link rel="alternate" hreflang="x-default" href="${SITE.url}${route.basePath}">
+  <meta property="og:locale" content="${({ en: "en_US", es: "es_ES", fr: "fr_FR", de: "de_DE", it: "it_IT", pl: "pl_PL" })[route.locale]}">
   <link rel="icon" href="/assets/icon.png">
   <link rel="apple-touch-icon" href="/assets/icon.png">
   <link rel="stylesheet" href="/style.css">
