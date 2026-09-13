@@ -5,6 +5,7 @@ import fr from "./locales/fr.json";
 import de from "./locales/de.json";
 import it from "./locales/it.json";
 import pl from "./locales/pl.json";
+import screenshotSizes from "./screenshot-sizes.json";
 
 export const LANGUAGES = [
   { code: "en", label: "English" },
@@ -28,13 +29,25 @@ export function localizedPath(locale: Locale, path: string): string {
   return locale === "en" ? path : `/${locale}${path}`;
 }
 
+export function localizedScreenshot(locale: Locale, src: string) {
+  if (locale === "en") return { src, width: 631, height: 1369 };
+  const localized = src.replace("/assets/screenshots/", `/assets/screenshots/${locale}/`);
+  const size = (screenshotSizes as Record<string, { width: number; height: number }>)[localized];
+  if (!size) throw new Error(`Missing ${locale} screenshot: ${src}`);
+  return { src: localized, ...size };
+}
+
 const technicalKeys = new Set(["slug", "guideSlug", "related", "src", "href", "reviewed"]);
 function translateData<T>(value: T, locale: Locale, key = ""): T {
   if (technicalKeys.has(key)) return value;
   if (typeof value === "string") return translate(locale, value) as T;
   if (Array.isArray(value)) return value.map(item => translateData(item, locale, key)) as T;
   if (value && typeof value === "object") {
-    return Object.fromEntries(Object.entries(value).map(([field, item]) => [field, translateData(item, locale, field)])) as T;
+    const translated = Object.fromEntries(Object.entries(value).map(([field, item]) => [field, translateData(item, locale, field)]));
+    if (typeof translated.src === "string" && translated.src.startsWith("/assets/screenshots/")) {
+      Object.assign(translated, localizedScreenshot(locale, translated.src));
+    }
+    return translated as T;
   }
   return value;
 }

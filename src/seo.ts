@@ -5,7 +5,7 @@ const absolute = (path: string) => (path.startsWith("http") ? path : `${SITE.url
 
 export function homeJsonLd(locale: Locale) {
   const t = (text: string) => translate(locale, text);
-  const { homeFaqs } = contentFor(locale);
+  const { homeFaqs, screenshots } = contentFor(locale);
   return [
     {
       "@context": "https://schema.org",
@@ -18,7 +18,7 @@ export function homeJsonLd(locale: Locale) {
       url: `${SITE.url}${localizedPath(locale, "/")}`,
       installUrl: SITE.appStoreUrl,
       image: absolute("/assets/icon.png"),
-      screenshot: absolute("/assets/screenshots/screenshot-1.jpg"),
+      screenshot: absolute(screenshots[0].src),
       author: { "@type": "Person", name: "Laura Gonzalez Lopez" },
       offers: {
         "@type": "Offer",

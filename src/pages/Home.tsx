@@ -37,7 +37,7 @@ const reportFeatures = [
 
 export default function Home() {
   const { guides, homeFaqs, screenshots } = useContent();
-  const { t, path } = useLocale();
+  const { t, path, locale } = useLocale();
   return (
     <PageFrame>
       <main>
@@ -63,17 +63,17 @@ export default function Home() {
               <div className="hero-orbit hero-orbit-two" />
               <img
                 className="hero-phone"
-                src="/assets/screenshots/screenshot-1.jpg"
-                width="631"
-                height="1369"
+                src={screenshots[0].src}
+                width={screenshots[0].width}
+                height={screenshots[0].height}
                 alt={t("Clarity Chat report showing emotional tone and the text examples behind a behavior indicator")}
                 fetchPriority="high"
               />
               <div className="floating-insight insight-a">
-                <span>{t("Observed tone")}</span><strong>{t("Detached · Sarcastic")}</strong>
+                <span>{t("Observed tone")}</span><strong>{locale === "es" ? t("Defensive · Accusatory") : locale === "pl" ? t("Intense · Insistent") : t("Detached · Sarcastic")}</strong>
               </div>
               <div className="floating-insight insight-b">
-                <span>{t("Check the evidence")}</span><strong>{t("2 message examples")}</strong>
+                <span>{t("Check the evidence")}</span><strong>{t("Message examples")}</strong>
               </div>
             </div>
           </div>
@@ -130,7 +130,6 @@ export default function Home() {
               </div>
               <p>{t("Clarity Chat separates participants, ties concerns to excerpts and keeps conversation strengths in view.")}</p>
             </div>
-            <p className="screenshot-language-note">{t("Screenshots show the English app interface.")}</p>
             <div className="screenshot-rail">
               {screenshots.map((shot) => (
                 <figure key={shot.src}>

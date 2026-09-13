@@ -46,7 +46,7 @@ export type Guide = {
 export const screenshots = [
   {
     src: "/assets/screenshots/screenshot-1.jpg",
-    alt: "Clarity Chat report showing emotions, observed tones and concrete gaslighting examples from a text conversation",
+    alt: "Clarity Chat report showing emotions, observed tones and behavior examples from a text conversation",
     caption: "See emotions, tones and the excerpts behind a behavior indicator.",
     width: 631,
     height: 1369,
@@ -591,7 +591,7 @@ export const guides: Guide[] = [
     },
     screenshot: {
       src: "/assets/screenshots/screenshot-1.jpg",
-      alt: "Clarity Chat behavior indicator with message excerpts associated with possible gaslighting",
+      alt: "Clarity Chat behavior indicator with the message excerpts behind it",
       caption:
         "A behavior flag should lead you back to the exact excerpts and the pattern around them.",
       width: 631,

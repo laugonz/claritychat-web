@@ -27,7 +27,7 @@ export type Route = {
 
 function createRoutes(locale: Locale): Route[] {
   const t = (text: string) => translate(locale, text);
-  const { guides } = contentFor(locale);
+  const { guides, screenshots } = contentFor(locale);
   const route = (path: string, meta: Omit<PageMeta, "canonical">, element: ReactElement): Route => ({
     path: localizedPath(locale, path),
     basePath: path,
@@ -50,7 +50,7 @@ function createRoutes(locale: Locale): Route[] {
     route("/", {
       title: t("Clarity Chat | AI Text Message Analyzer"),
       description: t(SITE.description),
-      image: `${SITE.url}/assets/screenshots/screenshot-1.jpg`,
+      image: `${SITE.url}${screenshots[0].src}`,
       jsonLd: homeJsonLd(locale),
       sitemapPriority: "1.0",
     }, <Home />),

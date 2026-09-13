@@ -17,14 +17,15 @@ Clarity Chat previously exposed only English website pages. The six languages su
 - Each language includes the homepage, guide index, seven articles, privacy, terms and support. Internal navigation stays in the current language.
 - English URLs and guide slugs remain stable. Every page has a self-referencing canonical, six reciprocal hreflang links and an English x-default equivalent.
 - All 72 pages are prerendered HTML and included in the sitemap. Titles, descriptions, document language, social metadata, image descriptions, FAQ and article schema follow the selected language.
-- Six checked-in catalogs contain 431 messages each. Missing translations fail the build. No runtime translation dependency or translation API was added.
-- The store button uses the country-neutral App Store URL. Product screenshots retain their original English pixels and display a translated note; app code and assets were not changed.
+- Six checked-in catalogs contain 432 messages each. Missing translations fail the build. No runtime translation dependency or translation API was added.
+- The store button uses the country-neutral App Store URL. The screenshot follow-up replaces the initial English-only images with five images per language in the homepage, guides, social metadata and app schema. Spanish/French/German/Italian assets come from the published App Store listing; Polish comes from existing native captures in ClarityChat-deck. Original app pixels, including English severity badges and chart abbreviations, remain unchanged. App code was not modified or rebuilt.
 
 ## Verification
 
 - `npm run build` — TypeScript and production prerender pass for 72 routes.
 - `npm run verify` — source/catalog parity, metadata, schema, internal links, guide depth, image assets, robots and exact sitemap coverage pass.
 - Output checks cover language-preserving links, matching language-selector destinations, reciprocal hreflang, unique IDs and working fragments, 42 Article schemas, 144 visible/schema FAQ pairs, preserved brand names and HTML tags, and absence of added numeric claims or untranslated English blocks.
+- Screenshot output checks cover all six complete sets, all 72 page references, correct dimensions, matching social/schema image URLs and SHA-256 integrity for the 25 imported assets. Import source URLs/paths and source/output hashes are in `screenshot-sources-20260913.json`. JPEGs are 631 pixels wide and add 2,906,625 bytes in total, preserving each original aspect ratio.
 - `tsc --noEmit --noUnusedLocals --noUnusedParameters` and `git diff --check` pass.
 - Chrome: all six homepages fit at 320 CSS pixels; Spanish homepage also checked at desktop width and German at tablet width. Mobile selector, keyboard opening, language switching on an article, FAQ disclosure and Italian privacy navigation were exercised. The Vite development path was separately checked with a Polish article.
 

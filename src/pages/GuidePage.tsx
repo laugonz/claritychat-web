@@ -62,7 +62,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
                   {index === 1 && (
                     <figure className="article-screenshot">
                       <img src={guide.screenshot.src} alt={guide.screenshot.alt} width={guide.screenshot.width} height={guide.screenshot.height} loading="lazy" />
-                      <figcaption>{guide.screenshot.caption} {t("Screenshots show the English app interface.")}</figcaption>
+                      <figcaption>{guide.screenshot.caption}</figcaption>
                     </figure>
                   )}
                 </section>

@@ -1465,7 +1465,6 @@ figcaption {
 .language-picker ul { position: absolute; inset-inline-end: 0; top: 100%; min-width: 180px; margin: 8px 0 0; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); box-shadow: var(--shadow-medium); list-style: none; }
 .language-picker a { display: flex; align-items: center; justify-content: space-between; min-height: 44px; padding: 8px 12px; border-radius: 8px; font-size: .94rem; text-decoration: none; }
 .language-picker a:hover, .language-picker a[aria-current] { background: var(--teal-pale); }
-.screenshot-language-note { color: var(--ink-soft); font-size: .86rem; }
 .hero-copy, .feature-card, .guide-card-body, .steps-grid article { min-width: 0; overflow-wrap: anywhere; }
 .breadcrumbs { flex-wrap: wrap; }
 html:not([lang="en"]) .hero h1 { font-size: clamp(2.7rem, 5vw, 5.7rem); }
