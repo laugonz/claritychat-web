@@ -53,7 +53,7 @@ export function Footer() {
           <a href={path("/privacy/")}>{t("Privacy")}</a>
           <a href={path("/terms/")}>{t("Terms")}</a>
           <a href={path("/support/")}>{t("Support")}</a>
-          <a href={SITE.appStoreUrl}>App Store</a>
+          <a href={SITE.appStoreCampaignUrl}>App Store</a>
         </div>
       </div>
       <div className="shell footer-bottom">
@@ -69,7 +69,7 @@ export function StoreButton({ compact = false }: { compact?: boolean }) {
   return (
     <a
       className={compact ? "store-button store-button-compact" : "store-button"}
-      href={SITE.appStoreUrl}
+      href={SITE.appStoreCampaignUrl}
       aria-label={t("Download Clarity Chat on the App Store")}
     >
       <span className="store-symbol" aria-hidden="true">●</span>

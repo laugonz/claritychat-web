@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import { readFileSync, writeFileSync } from 'node:fs';
 const messages = new Set();
-const technical = new Set(['slug', 'guideSlug', 'related', 'src', 'href', 'reviewed', 'name', 'url', 'appId', 'appStoreUrl', 'email', 'published']);
+const technical = new Set(['slug', 'guideSlug', 'related', 'src', 'href', 'reviewed', 'name', 'url', 'appId', 'appStoreUrl', 'appStoreCampaignUrl', 'email', 'published']);
 const add = text => { if (text?.trim() && !text.startsWith('/')) messages.add(text); };
 for (const file of ['components.tsx', 'pages/Home.tsx', 'pages/GuidesIndex.tsx', 'pages/LegalPages.tsx', 'pages/GuidePage.tsx', 'routes.tsx', 'seo.ts', 'data.ts']) {
   const source = readFileSync(new URL(`../src/${file}`, import.meta.url), 'utf8');

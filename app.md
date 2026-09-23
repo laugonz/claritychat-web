@@ -129,6 +129,13 @@ All images: editorial 3D illustration with soft tactile materials, deep navy and
 
 Version 1.10 remains the published app. The screenshot upload screen confirms a maximum of four images. Two existing home FAQs now answer product-selection questions while keeping ten FAQs overall, and three existing guides explain the app before the feature image. The metadata retains the App Store alias Deep Conversations: Clarity and ID 6740494653. Public llms.txt provides factual supplementary links; it does not promise ranking or recommendation. New copy does not claim mind reading, diagnosis, automatic chat-account access or exclusively on-device AI processing.
 
+## 23 September 2026 SEO measurement baseline
+
+- Search Console, 25 August–21 September: 37 clicks and 645 impressions for the domain. The `/guides/how-to-analyze-text-messages/` page had 2 clicks, 265 impressions and average position 26.8. Most domain clicks came from branded searches.
+- EverRank now tracks the app and `claritychat.app` in US English mobile Google results. The first check showed position 2 for `clarity chat`, 71 for `analyze text messages` and `how to analyze text messages`, and 75 for `text message analyzer`. These are snapshots, not traffic or App Store search rankings.
+- All visible website download links use the `clarity_web` App Store campaign with this developer account's existing provider token `1201782`. The untracked `SITE.appStoreUrl` remains the structured-data install URL. Apple's campaign report has a delay and minimum reporting threshold; a blank report does not establish zero downloads.
+- Next comparison: after four weeks, compare non-branded page clicks and impressions in Search Console, positions in EverRank and attributed App Store campaign activity. Do not credit a ranking change or new downloads to this link change alone.
+
 ## 13 September 2026 website languages
 
 The published [App Store listing](https://apps.apple.com/app/id6740494653), checked on 2026-09-13, supports English, Spanish, French, German, Italian and Polish. The website now mirrors these six languages: English keeps `/`; the others use `/es/`, `/fr/`, `/de/`, `/it/` and `/pl/`.

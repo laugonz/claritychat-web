@@ -4,6 +4,8 @@ export const SITE = {
   appId: "6740494653",
   appStoreUrl:
     "https://apps.apple.com/app/id6740494653",
+  appStoreCampaignUrl:
+    "https://apps.apple.com/app/apple-store/id6740494653?pt=1201782&ct=clarity_web&mt=8",
   email: "laugonz@me.com",
   description:
     "Upload chat screenshots and review tone, emotions, response patterns and concrete examples with Clarity Chat. Private, reflective and judgment-free.",
