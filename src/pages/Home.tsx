@@ -44,12 +44,12 @@ export default function Home() {
         <section className="hero">
           <div className="shell hero-grid">
             <div className="hero-copy">
-              <span className="eyebrow">{t("The conversation, with room to think")}</span>
+              <span className="eyebrow">{t("New · WhatsApp Wrapped")}</span>
               <h1>{t("AI text message analyzer for relationship clarity")}</h1>
-              <p className="hero-lead">{t("Upload chat screenshots and review tone, emotions, response patterns and the exact examples behind them. Clarity Chat gives you a second look, not a verdict.")}</p>
+              <p className="hero-lead">{t("Upload your whole WhatsApp chat and see who writes more, who always texts first and who breaks the silences. Free, in 30 seconds, and it never leaves your phone.")}</p>
               <div className="hero-actions">
+                <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
                 <StoreButton />
-                <a className="secondary-button" href="#how-it-works">{t("See how it works")}</a>
               </div>
               <p className="hero-note">{t("Free to download · Up to four screenshots · No account required")}</p>
               <div className="hero-proof" aria-label={t("Product principles")}>
@@ -58,23 +58,44 @@ export default function Home() {
                 <span><strong>{t("Grounded")}</strong>{" "}{t("Reflection, never diagnosis")}</span>
               </div>
             </div>
-            <div className="hero-visual" aria-label={t("Clarity Chat analysis preview")}>
-              <div className="hero-orbit hero-orbit-one" />
-              <div className="hero-orbit hero-orbit-two" />
-              <img
-                className="hero-phone"
-                src={screenshots[0].src}
-                width={screenshots[0].width}
-                height={screenshots[0].height}
-                alt={t("Clarity Chat report showing emotional tone and the text examples behind a behavior indicator")}
-                fetchPriority="high"
-              />
-              <div className="floating-insight insight-a">
-                <span>{t("Observed tone")}</span><strong>{locale === "es" ? t("Defensive · Accusatory") : locale === "pl" ? t("Intense · Insistent") : t("Detached · Sarcastic")}</strong>
+            <div className="hero-visual hero-wrapped" aria-hidden="true">
+              <div className="mini-story c1">
+                <div className="ms-bars"><i className="on" /><i /><i /></div>
+                <div className="ms-emoji">📅</div>
+                <span className="ms-kicker">{t("Your chat")}</span>
+                <strong>515</strong><span className="ms-label">{t("days talking")}</span>
+                <div className="ms-cal"><i className="l0" /><i className="l1" /><i className="l2" /><i className="l1" /><i className="l3" /><i className="l0" /><i className="l1" /><i className="l2" /><i className="l4" /><i className="l2" /><i className="l1" /><i className="l0" /><i className="l2" /><i className="l3" /><i className="l1" /><i className="l2" /><i className="l1" /><i className="l0" /><i className="l3" /><i className="l2" /><i className="l4" /><i className="l1" /><i className="l2" /><i className="l1" /><i className="l0" /><i className="l2" /><i className="l1" /><i className="l3" /></div>
               </div>
-              <div className="floating-insight insight-b">
-                <span>{t("Check the evidence")}</span><strong>{t("Message examples")}</strong>
+              <div className="mini-story c2">
+                <div className="ms-bars"><i className="done" /><i className="on" /><i /></div>
+                <div className="ms-emoji">🤐</div>
+                <span className="ms-kicker">{t("The silences")}</span>
+                <strong>4/5</strong><span className="ms-label">{t("of the silences, you broke")}</span>
+                <div className="ms-sil"><div><b>12 {t("days")}</b><em>{t("You")}</em></div><div><b>9 {t("days")}</b><em>{t("You")}</em></div></div>
               </div>
+              <div className="mini-story c3">
+                <div className="ms-bars"><i className="done" /><i className="done" /><i className="on" /></div>
+                <div className="ms-emoji">👀</div>
+                <span className="ms-kicker">{t("Who texts more")}</span>
+                <strong>62%</strong><span className="ms-label">{t("of the messages are yours 👀")}</span>
+                <div className="ms-split"><i style={{ width: "62%" }} /><i style={{ width: "38%" }} /></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="wrapped-band app-band">
+          <div className="shell wrapped-inner">
+            <div className="wrapped-copy">
+              <span className="eyebrow">{t("The conversation, with room to think")}</span>
+              <h2>{t("Only want to look at a few messages?")}</h2>
+              <p>{t("Upload chat screenshots and review tone, emotions, response patterns and the exact examples behind them. Clarity Chat gives you a second look, not a verdict.")}</p>
+              <p>{t("Analyze screenshots of any chat (WhatsApp, Instagram, Tinder…) in the iPhone app.")}</p>
+              <div className="hero-actions"><StoreButton /><a className="secondary-button" href="#how-it-works">{t("See how it works")}</a></div>
+            </div>
+            <div className="app-band-img">
+              <img src={screenshots[0].src} width={screenshots[0].width} height={screenshots[0].height}
+                alt={t("Clarity Chat report showing emotional tone and the text examples behind a behavior indicator")} loading="lazy" />
             </div>
           </div>
         </section>

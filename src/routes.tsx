@@ -6,6 +6,8 @@ import Home from "./pages/Home";
 import GuidePage from "./pages/GuidePage";
 import GuidesIndex from "./pages/GuidesIndex";
 import { PrivacyPage, SupportPage, TermsPage } from "./pages/LegalPages";
+import ReportPage from "./pages/ReportPage";
+import { setLang, tr } from "./report/i18n";
 
 export type PageMeta = {
   title: string;
@@ -69,6 +71,13 @@ function createRoutes(locale: Locale): Route[] {
       jsonLd: guideJsonLd(guide, locale),
       sitemapPriority: "0.8",
     }, <GuidePage guide={guide} />)),
+    route("/report/", {
+      title: (setLang(locale), tr("metaTitle")),
+      description: tr("metaDesc"),
+      image: `${SITE.url}${screenshots[0].src}`,
+      jsonLd: [],
+      sitemapPriority: "0.8",
+    }, <div id="report-root"><ReportPage locale={locale} /></div>),
     route("/privacy/", {
       title: t("Privacy Policy | Clarity Chat"),
       description: t("How Clarity Chat processes selected chat screenshots, protects conversation content and handles purchases."),

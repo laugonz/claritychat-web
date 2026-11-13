@@ -24,6 +24,10 @@ export function PrivacyPage() {
       <h2>{t("Conversation analysis")}</h2>
       <p>{t("Selected screenshots are sent securely to Clarity Chat’s analysis service so the app can extract visible messages and produce a report. The published Clarity Chat privacy commitment states that conversations are processed once and are not stored, shared, reused or sold for advertising.")}</p>
       <p>{t("Only upload material you have a lawful right to use. Crop names, phone numbers and unrelated personal information when they are not needed for your question.")}</p>
+      <h2>{t("Whole-chat report (web)")}</h2>
+      <p>{t("When you upload a WhatsApp export on claritychat.app, the file is read and the statistics are calculated in your browser. The chat file is not uploaded to our servers.")}</p>
+      <p>{t("Only if you ask for the written report, a selection of messages and the statistics are sent to our server and to Anthropic (Claude) to write it. The selection is not stored or used to train models. The finished report is kept for 30 days so you can open it with its private link, and then deleted.")}</p>
+      <p>{t("Web payments are processed by Stripe. Clarity Chat does not receive your card details. Stripe sends you the receipt and invoice by email.")}</p>
       <h2>{t("Information on your device")}</h2>
       <p>{t("The app may keep settings, usage limits and purchase entitlement information needed to operate. Apple processes App Store purchases and subscriptions; Clarity Chat does not receive your payment-card details.")}</p>
       <h2>{t("Service providers")}</h2>
@@ -51,6 +55,8 @@ export function TermsPage() {
       <p>{t("Clarity Chat is not therapy, medical care, legal advice or emergency support. Do not make a high-stakes safety, health or legal decision solely from an app report. Contact an appropriate professional or local support service.")}</p>
       <h2>{t("Purchases and subscriptions")}</h2>
       <p>{t("Apple processes all in-app purchases. Any subscription renews according to the terms shown by Apple before confirmation and can be managed through your Apple account. Apple’s standard end-user license agreement also applies.")}</p>
+      <h2>{t("Web purchases and right of withdrawal")}</h2>
+      <p>{t("The written report is a one-time purchase of digital content, prices include VAT. It is delivered immediately after payment, so by buying you agree to receive it straight away and acknowledge that you lose the 14-day right of withdrawal once it is shown. If something went wrong (for example, you were charged and the report did not open), write to us and we will fix it or refund you.")}</p>
       <h2>{t("Availability")}</h2>
       <p>{t("Features may change as the app is improved. We may restrict abusive or unlawful use and cannot promise uninterrupted access to every analysis service.")}</p>
       <h2>{t("Contact")}</h2>

@@ -6,11 +6,12 @@
   "scripts": {
     "dev": "vite",
     "check": "tsc --noEmit",
-    "build": "npm run check && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
+    "build": "npm run check && vite build -c vite.report.config.ts && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs",
     "verify": "node scripts/catalog.mjs --check && node scripts/verify.mjs && python3 scripts/verify-localization.py",
     "preview": "vite preview --host 127.0.0.1"
   },
   "dependencies": {
+    "fflate": "^0.8.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

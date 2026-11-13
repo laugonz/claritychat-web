@@ -5,6 +5,10 @@ import { SITE, type Faq, type Guide } from "./data";
 export function Header() {
   const { t, path } = useLocale();
   return (
+    <>
+    <a className="announce" href={path("/report/")}>
+      <span>✨ <strong>{t("New:")}</strong> {t("Who texts more in your WhatsApp?")}</span> <u>{t("Find out for free")} →</u>
+    </a>
     <header className="site-header">
       <div className="shell header-inner">
         <a className="brand" href={path("/")} aria-label={t("Clarity Chat home")}>
@@ -15,12 +19,14 @@ export function Header() {
           <a href={path("/#report")}>{t("What you see")}</a>
           <a href={path("/#how-it-works")}>{t("How it works")}</a>
           <a href={path("/guides/")}>{t("Guides")}</a>
+          <a className="nav-new" href={path("/report/")}>✨ {t("Your whole chat")} <span>{t("New")}</span></a>
           <a href={path("/#faq")}>{t("FAQ")}</a>
         </nav>
         <LanguagePicker />
         <StoreButton compact />
       </div>
     </header>
+    </>
   );
 }
 

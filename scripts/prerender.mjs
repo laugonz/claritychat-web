@@ -9,6 +9,7 @@ const ssrFile = join(projectRoot, "dist-ssr", "entry-server.js");
 await rm(distDir, { recursive: true, force: true });
 await mkdir(distDir, { recursive: true });
 await cp(join(projectRoot, "public"), distDir, { recursive: true });
+await cp(join(projectRoot, "dist-report"), join(distDir, "assets", "report"), { recursive: true });
 
 const { ROUTES, renderRoute } = await import(ssrFile);
 
