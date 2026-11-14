@@ -9,6 +9,9 @@ const esc = (value: string) => value
   .replaceAll("<", "&lt;")
   .replaceAll(">", "&gt;");
 
+// Changes every build so phones never run an old cached copy of the report app.
+const BUILD = Date.now().toString(36);
+
 const json = (value: unknown) => JSON.stringify(value).replaceAll("<", "\\u003c");
 
 export function renderRoute(route: Route) {
@@ -51,7 +54,7 @@ export function renderRoute(route: Route) {
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>${route.basePath === "/report/" ? '\n  <link rel="stylesheet" href="/assets/report/report-app.css">\n  <script type="module" src="/assets/report/report-app.js"></script>' : ""}
+  <script defer src="/_vercel/insights/script.js"></script>${route.basePath === "/report/" ? '\n  <link rel="stylesheet" href="/assets/report/report-app.css?v=${BUILD}">\n  <script type="module" src="/assets/report/report-app.js?v=${BUILD}"></script>' : ""}
 </body>
 </html>`;
 }
