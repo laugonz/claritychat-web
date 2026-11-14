@@ -451,6 +451,14 @@ function Setup(p: {
 
       {q >= 3 && <>
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
+          <div className="rp-preview" aria-hidden="true">
+            <span className="rp-preview-k">{tr("previewLabel")}</span>
+            <b>{tr("previewTitle")}</b>
+            <p>{tr("previewLine")}</p>
+            <div className="rp-preview-blur"><i style={{ width: "92%" }} /><i style={{ width: "84%" }} /><i style={{ width: "88%" }} />
+              <svg viewBox="0 0 300 60" width="100%" height="46"><polyline points="0,45 40,35 80,38 120,20 160,28 200,12 240,22 300,8" fill="none" stroke="#42c5ca" strokeWidth="4" /><polyline points="0,50 40,48 80,50 120,38 160,42 200,32 240,36 300,28" fill="none" stroke="#ff8b45" strokeWidth="4" /></svg>
+              <i style={{ width: "76%" }} /><i style={{ width: "90%" }} /></div>
+          </div>
           <strong>{tr("benefitTitle")}</strong>
           <ul className="rp-benefits">
             <li><Icon name="book" /><span>{tr("benefitStory")}</span></li>

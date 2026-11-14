@@ -269,7 +269,8 @@ export function ReportView({ report, viz, counts, onPay, paying, payError }: {
       {report.safety?.concern && report.safety.note && <p className="rp-safety">{report.safety.note}</p>}
       {locked ? (
         <>
-          <article className="rp-chapter rp-cut">{chapterHead(report.chapters[0], 0)}<Body c={report.chapters[0]} i={0} viz={viz} counts={counts} /></article>
+          <article className="rp-chapter rp-cut rp-cut-blur">{chapterHead(report.chapters[0], 0)}<Body c={report.chapters[0]} i={0} viz={viz} counts={counts} /></article>
+          <div className="rp-ghost-text" aria-hidden="true">{[96, 88, 92, 70, 94, 85, 60].map((w, k) => <i key={k} style={{ width: `${w}%` }} />)}</div>
           <div className="rp-paywall">
             <h3>{tr("r_keepReading")}</h3>
             <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
