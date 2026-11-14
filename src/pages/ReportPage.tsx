@@ -98,8 +98,8 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
     setReportError(tr("errSlow"));
   }
 
-  async function startReport() {
-    if (!chat || !stats || !consent || reportId) return;
+  async function startReport(given?: boolean) {
+    if (!chat || !stats || !(given ?? consent) || reportId) return;
     const v = { ...buildViz(stats, me), stories: buildStories(stats, me) }; setViz(v);
     const sample = sampleChat(chat, stats);
     const lang = (document.documentElement.lang || "es").slice(0, 2);
@@ -211,7 +211,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
             relation={relation} setRelation={setRelation} question={question} setQuestion={setQuestion}
             context={context} setContext={setContext} email={email} setEmail={setEmail}
             consent={consent} setConsent={setConsent}
-            onDone={() => { startReport(); setStep("stories"); }} />
+            onDone={(given: boolean) => { setConsent(given); startReport(given); setStep("stories"); }} />
         )}
 
         {step === "stories" && (stats || viz?.stories) && <Stories stories={stats ? buildStories(stats, me) : (viz!.stories as Story[])} lines={consent && stats && !report ? waitingLines(stats, me) : []} ready={!!report} onDone={() => setStep("report")} />}
@@ -366,38 +366,56 @@ function Steps({ ids }: { ids: string[] }) {
 function Setup(p: {
   meName: string; otherName: string; relation: string; setRelation: (v: string) => void;
   question: string; setQuestion: (v: string) => void; context: string; setContext: (v: string) => void;
-  email: string; setEmail: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void; onDone: () => void;
+  email: string; setEmail: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void; onDone: (given: boolean) => void;
 }) {
-  const [q, setQ] = useState(0);
+  const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
+  const [typing, setTyping] = useState(false);
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
+  useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
   const toggle = (cur: string, v: string, set: (x: string) => void) => {
     const parts = cur ? cur.split(" · ") : [];
     set(parts.includes(v) ? parts.filter(x => x !== v).join(" · ") : [...parts, v].join(" · "));
   };
+  const Ask = ({ children, html }: { children?: ReactNode; html?: string }) => (
+    <div className="rp-ask-row"><Clara size={34} />{html ? <div className="rp-ask" dangerouslySetInnerHTML={{ __html: html }} /> : <div className="rp-ask">{children}</div>}</div>
+  );
+  const Reply = ({ text }: { text: string }) => <div className="rp-reply">{text}</div>;
+  const chips = (ids: string[], value: string, set: (v: string) => void) => (
+    <div className="rp-opts rp-opts-text">{ids.map(id => tr(id)).map(w =>
+      <button key={w} aria-pressed={value.split(" · ").includes(w)} onClick={() => toggle(value, w, set)}>{w}</button>)}</div>
+  );
+  const free = (value: string, set: (v: string) => void, ph: string) => typing
+    ? <textarea className="rp-say" rows={2} autoFocus value={value} onChange={e => set(e.target.value)} placeholder={ph} />
+    : <button className="rp-linkbtn" onClick={() => setTyping(true)}>{tr("writeOwn")}</button>;
   return (
     <section className="rp-screen rp-dark rp-pad rp-convo">
-      <div className="rp-ask-row rp-ask-first"><Clara size={56} mood="soft" /><div className="rp-ask">{tr("ask0", { me: p.meName })}</div></div>
-      <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask" dangerouslySetInnerHTML={{ __html: tr("askRel", { other: p.otherName.replace(/[&<>"]/g, "") }) }} /></div>
-      <div className="rp-opts">{RELATIONS.map(([e, r]) => (
-        <button key={r} aria-pressed={p.relation === r} onClick={() => { p.setRelation(r); if (q < 1) setQ(1); }}><span>{e}</span>{relLabel(r)}</button>))}
-      </div>
+      <div className="rp-steps" aria-label={`${Math.min(q + 1, 4)} / 4`}>{[0, 1, 2, 3].map(k => <i key={k} className={k < q ? "done" : k === q ? "on" : ""} />)}</div>
+      <div className="rp-ask-row rp-ask-first"><Clara size={52} mood="soft" /><div className="rp-ask">{tr("ask0", { me: p.meName })}</div></div>
+
+      <Ask html={tr("askRel", { other: p.otherName.replace(/[&<>"]/g, "") })} />
+      {q === 0
+        ? <div className="rp-opts">{RELATIONS.map(([, r]) => <button key={r} aria-pressed={p.relation === r} onClick={() => { p.setRelation(r); setQ(1); }}>{relLabel(r)}</button>)}</div>
+        : <Reply text={relLabel(p.relation)} />}
+
       {q >= 1 && <>
-        <div className="rp-reply">{relLabel(p.relation)}</div>
-        <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask">{tr("askWorry")}</div></div>
-        <div className="rp-opts rp-opts-text">{(WORRIES[p.relation] ?? WORRIES_LOVE).map(id => tr(id)).map(w => <button key={w} aria-pressed={p.question.split(" · ").includes(w)} onClick={() => toggle(p.question, w, p.setQuestion)}>{w}</button>)}</div>
-        <textarea className="rp-say" rows={2} value={p.question} onChange={e => p.setQuestion(e.target.value)} placeholder={tr("sayWorry")} />
-        {q === 1 && <button className="rp-btn rp-teal" onClick={() => setQ(2)}>{p.question ? tr("next") : tr("ratherNot")}</button>}
+        <Ask>{tr("askWorry")}</Ask>
+        {q === 1 ? <>
+          {chips(WORRIES[p.relation] ?? WORRIES_LOVE, p.question, p.setQuestion)}
+          {free(p.question, p.setQuestion, tr("sayWorry"))}
+          <button className="rp-btn rp-teal" onClick={() => setQ(2)}>{p.question ? tr("next") : tr("ratherNot")}</button>
+        </> : (p.question ? <Reply text={p.question} /> : <Reply text={tr("ratherNot")} />)}
       </>}
+
       {q >= 2 && <>
-        {p.question && <div className="rp-reply">{p.question}</div>}
-        <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask">{tr("askOutside")}</div></div>
-        <div className="rp-opts rp-opts-text">{OUTSIDE.map(id => tr(id)).map(w => <button key={w} aria-pressed={p.context.split(" · ").includes(w)} onClick={() => toggle(p.context, w, p.setContext)}>{w}</button>)}</div>
-        <textarea className="rp-say" rows={2} value={p.context} onChange={e => p.setContext(e.target.value)} placeholder={tr("sayOutside")} />
-        {q === 2 && <button className="rp-btn rp-teal" onClick={() => setQ(3)}>{tr("next")}</button>}
+        <Ask>{tr("askOutside")}</Ask>
+        {q === 2 ? <>
+          {chips(OUTSIDE, p.context, p.setContext)}
+          {free(p.context, p.setContext, tr("sayOutside"))}
+          <button className="rp-btn rp-teal" onClick={() => setQ(3)}>{tr("next")}</button>
+        </> : (p.context ? <Reply text={p.context} /> : null)}
       </>}
+
       {q >= 3 && <>
-        {p.context && <div className="rp-reply">{p.context}</div>}
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
           <strong>{tr("consentTitle")}</strong>
           <ul>
@@ -407,14 +425,10 @@ function Setup(p: {
           </ul>
           <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a>
         </div></div>
-        <div className="rp-opts rp-opts-text">
-          <button aria-pressed={p.consent} onClick={() => p.setConsent(true)}><Icon name="check" />{tr("consentYes")}</button>
-          <button aria-pressed={!p.consent && q > 3} onClick={() => { p.setConsent(false); p.onDone(); }}><Icon name="chart" />{tr("statsOnly")}</button>
+        <div className="rp-consent-actions">
+          <button className="rp-btn rp-main" onClick={() => p.onDone(true)}><Icon name="check" />{tr("consentYes")}</button>
+          <button className="rp-linkbtn" onClick={() => p.onDone(false)}>{tr("statsOnly")}</button>
         </div>
-        {p.consent && <>
-          <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask">{tr("askGreat")}</div></div>
-          <button className="rp-btn rp-main" onClick={p.onDone}>{tr("seeStats")}</button>
-        </>}
       </>}
       <div ref={end} />
     </section>

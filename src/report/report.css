@@ -315,3 +315,18 @@
 .rp-consent-card a{color:var(--rp-teal);font-size:13px;font-weight:700;text-decoration:none;align-self:flex-start}
 .rp-opts-text button .rp-icon{flex:none;color:var(--rp-teal);margin-right:6px}
 .rp-opts-text button{gap:4px}
+/* tidy setup chat: one question at a time */
+.rp-convo{max-width:560px;width:100%;margin:0 auto;gap:14px}
+.rp-steps{display:flex;gap:6px;margin-bottom:6px}
+.rp-steps i{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.14)}
+.rp-steps i.done{background:var(--rp-teal)}
+.rp-steps i.on{background:linear-gradient(90deg,var(--rp-teal) 50%,rgba(255,255,255,.14) 50%)}
+.rp-convo .rp-opts,.rp-convo .rp-say,.rp-convo > .rp-btn,.rp-convo .rp-linkbtn,.rp-consent-actions{margin-left:42px;width:calc(100% - 42px)}
+.rp-convo .rp-opts{margin-top:0}
+.rp-convo .rp-opts:not(.rp-opts-text) button{padding:14px 8px;font-size:15px}
+.rp-linkbtn{background:none;border:0;color:var(--rp-teal);font-weight:700;font-size:14px;text-align:left;padding:2px 0;cursor:pointer}
+.rp-consent-actions{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+.rp-consent-actions .rp-btn{gap:8px}
+.rp-consent-actions .rp-btn .rp-icon{color:#26120a}
+.rp-consent-actions .rp-linkbtn{text-align:center;color:var(--rp-on-soft)}
+.rp-reply{margin-bottom:4px}
