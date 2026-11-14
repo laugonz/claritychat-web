@@ -28,6 +28,7 @@ export function PrivacyPage() {
       <p>{t("When you upload a WhatsApp export on claritychat.app, the file is read and the statistics are calculated in your browser. The chat file is not uploaded to our servers.")}</p>
       <p>{t("Only if you ask for the written report, a selection of messages and the statistics are sent to our server and to Anthropic (Claude) to write it. The selection is not stored or used to train models. The finished report is kept for 30 days so you can open it with its private link, and then deleted.")}</p>
       <p>{t("Web payments are processed by Stripe. Clarity Chat does not receive your card details. Stripe sends you the receipt and invoice by email.")}</p>
+      <p>{t("After a purchase we use the email you give Stripe once, to send you the link to your report. It is sent through Resend (EU servers) and we don't keep it or use it for marketing.")}</p>
       <h2>{t("Information on your device")}</h2>
       <p>{t("The app may keep settings, usage limits and purchase entitlement information needed to operate. Apple processes App Store purchases and subscriptions; Clarity Chat does not receive your payment-card details.")}</p>
       <h2>{t("Service providers")}</h2>
