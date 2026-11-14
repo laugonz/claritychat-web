@@ -404,6 +404,8 @@ function Setup(p: {
 }) {
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
+  // A random example report each time (written examples, not AI, not the user's chat).
+  const [preview] = useState(() => { const n = 1 + Math.floor(Math.random() * 5); return n === 1 ? { t: "previewTitle", l: "previewLine" } : { t: `previewTitle${n}`, l: `previewLine${n}` }; });
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
   const toggle = (cur: string, v: string, set: (x: string) => void) => {
@@ -453,8 +455,8 @@ function Setup(p: {
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
           <div className="rp-preview" aria-hidden="true">
             <span className="rp-preview-k">{tr("previewLabel")}</span>
-            <b>{tr("previewTitle")}</b>
-            <p>{tr("previewLine")}</p>
+            <b>{tr(preview.t)}</b>
+            <p>{tr(preview.l)}</p>
             <div className="rp-preview-blur"><i style={{ width: "92%" }} /><i style={{ width: "84%" }} /><i style={{ width: "88%" }} />
               <svg viewBox="0 0 300 60" width="100%" height="46"><polyline points="0,45 40,35 80,38 120,20 160,28 200,12 240,22 300,8" fill="none" stroke="#42c5ca" strokeWidth="4" /><polyline points="0,50 40,48 80,50 120,38 160,42 200,32 240,36 300,28" fill="none" stroke="#ff8b45" strokeWidth="4" /></svg>
               <i style={{ width: "76%" }} /><i style={{ width: "90%" }} /></div>
