@@ -75,14 +75,14 @@ function createRoutes(locale: Locale): Route[] {
     route("/report/", {
       title: (setLang(locale), tr("metaTitle")),
       description: tr("metaDesc"),
-      image: `${SITE.url}${screenshots[0].src}`,
+      image: `${SITE.url}/assets/og/og-report-${locale}.jpg`,
       jsonLd: [],
       sitemapPriority: "0.8",
     }, <div id="report-root"><ReportPage locale={locale} /></div>),
     ...(hasOwnExample(locale) ? [route("/report/example/", {
       title: (setLang(locale), `${exampleFor(locale).report.title} · ${tr("seeExample").replace(/\s*→$/, "")} | Clarity Chat`),
       description: tr("metaDesc"),
-      image: `${SITE.url}${screenshots[0].src}`,
+      image: `${SITE.url}/assets/og/og-report-${locale}.jpg`,
       jsonLd: [],
       sitemapPriority: "0.6",
     }, <div id="report-root"><ReportPage locale={locale} example /></div>)] : []),

@@ -256,7 +256,7 @@ export function Numbers({ viz }: { viz: Viz }) {
 
 /** Keep the private link: send it to yourself on WhatsApp, or copy it. */
 function SaveLink() {
-  const url = typeof location !== "undefined" ? location.href.replace(/[?&]session_id=[^&]+/, "") : "";
+  const url = typeof location !== "undefined" ? `${location.origin}${location.pathname}?r=${new URLSearchParams(location.search).get("r") ?? ""}` : "";
   return (
     <div className="rp-savelink">
       <p>{tr("saveLinkT")}</p>
