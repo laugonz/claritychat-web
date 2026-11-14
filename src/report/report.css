@@ -330,3 +330,9 @@
 .rp-consent-actions .rp-btn .rp-icon{color:#26120a}
 .rp-consent-actions .rp-linkbtn{text-align:center;color:var(--rp-on-soft)}
 .rp-reply{margin-bottom:4px}
+/* one avatar column for every Clara bubble; everything else lines up with the bubbles */
+.rp-convo .rp-ask-row{gap:8px;max-width:100%}
+.rp-convo .rp-ask-row > .rp-mascot{width:34px;height:34px;flex:0 0 34px}
+.rp-convo .rp-ask{max-width:calc(100% - 42px)}
+.rp-convo .rp-steps{margin-left:42px;width:calc(100% - 42px)}
+.rp-convo .rp-reply{max-width:calc(100% - 84px)}

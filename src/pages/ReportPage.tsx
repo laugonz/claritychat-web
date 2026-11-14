@@ -390,7 +390,7 @@ function Setup(p: {
   return (
     <section className="rp-screen rp-dark rp-pad rp-convo">
       <div className="rp-steps" aria-label={`${Math.min(q + 1, 4)} / 4`}>{[0, 1, 2, 3].map(k => <i key={k} className={k < q ? "done" : k === q ? "on" : ""} />)}</div>
-      <div className="rp-ask-row rp-ask-first"><Clara size={52} mood="soft" /><div className="rp-ask">{tr("ask0", { me: p.meName })}</div></div>
+      <div className="rp-ask-row rp-ask-first"><Clara size={34} mood="soft" /><div className="rp-ask">{tr("ask0", { me: p.meName })}</div></div>
 
       <Ask html={tr("askRel", { other: p.otherName.replace(/[&<>"]/g, "") })} />
       {q === 0

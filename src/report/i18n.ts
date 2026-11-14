@@ -68,7 +68,7 @@ const D: Record<string, Row> = {
   whoAreYou: ["Which one is you?", "¿Quién eres tú?", "Lequel, c'est toi ?", "Wer davon bist du?", "Chi sei tu?", "Którą osobą jesteś?"],
   nMessages: ["{n} messages", "{n} mensajes", "{n} messages", "{n} Nachrichten", "{n} messaggi", "{n} wiadomości"],
   // ---------- setup (Clara asks) ----------
-  ask0: ["Hi, {me} I'm {clara}. Before I read it all, three quick things.", "Hola, {me} Soy {clara}. Antes de leerlo todo, tres cosas rápidas.", "Salut {me} Moi c'est {clara}. Avant de tout lire, trois petites questions.", "Hi {me} Ich bin {clara}. Bevor ich alles lese, drei kurze Fragen.", "Ciao {me} Sono {clara}. Prima di leggere tutto, tre cose veloci.", "Cześć, {me} Jestem {clara}. Zanim wszystko przeczytam — trzy szybkie pytania."],
+  ask0: ["Hi, {me}. I'm {clara}. Before I read it all, three quick things.", "Hola, {me}. Soy {clara}. Antes de leerlo todo, tres cosas rápidas.", "Salut {me} ! Moi c'est {clara}. Avant de tout lire, trois petites questions.", "Hi {me}! Ich bin {clara}. Bevor ich alles lese, drei kurze Fragen.", "Ciao {me}! Sono {clara}. Prima di leggere tutto, tre cose veloci.", "Cześć, {me}! Jestem {clara}. Zanim wszystko przeczytam — trzy szybkie pytania."],
   askRel: ["What is <b>{other}</b> to you?", "¿Qué es <b>{other}</b> para ti?", "Qui est <b>{other}</b> pour toi ?", "Was ist <b>{other}</b> für dich?", "Chi è <b>{other}</b> per te?", "Kim jest dla ciebie <b>{other}</b>?"],
   rel_partner: ["Partner", "Pareja", "Couple", "Partner/in", "Coppia", "Partner"],
   rel_ex: ["Ex", "Ex", "Ex", "Ex", "Ex", "Ex"],
