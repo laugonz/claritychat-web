@@ -59,7 +59,16 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
   useEffect(() => {
     try { if (sessionStorage.getItem("rp-visit")) return; sessionStorage.setItem("rp-visit", "1"); } catch { /* private mode: still ping once */ }
     let ref = "";
-    try { const h = document.referrer ? new URL(document.referrer).hostname : ""; ref = h && h !== location.hostname ? h : ""; } catch { /* ignore */ }
+    try {
+      if (document.referrer) {
+        const u = new URL(document.referrer);
+        if (u.hostname !== location.hostname) ref = u.hostname;
+        else {
+          const g = u.pathname.match(/\/guides\/([^/]+)/);
+          ref = g ? `guía: ${g[1]}` : /^\/([a-z]{2}\/)?$/.test(u.pathname) ? "la portada" : `web: ${u.pathname}`;
+        }
+      }
+    } catch { /* ignore */ }
     const utm = new URLSearchParams(location.search).get("utm_source");
     fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref }) }).catch(() => {});
