@@ -298,7 +298,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
       <h1>{report.title}</h1>
       {!example && <SaveLink />}
       <p className="rp-verdict"><Rich text={report.verdict} /></p>
-      {report.safety?.concern && report.safety.note && <p className="rp-safety">{report.safety.note}</p>}
+      {report.safety?.concern && <div className="rp-safety">{report.safety.note && <p>{report.safety.note}</p>}<p><b>{tr("helpTitle")}:</b> {tr("helpLines")}</p></div>}
       {locked ? (
         <>
           <FreePart c={report.chapters[0]} viz={viz} head={chapterHead(report.chapters[0], 0)} />
@@ -322,7 +322,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
             <article key={i} className="rp-chapter">
               {chapterHead(c, i)}
               <Body c={c} i={i} viz={viz} counts={counts} />
-              {c.message_suggestion && <div className="rp-suggest"><span>{tr("r_suggest")}</span><div className="rp-m me">{c.message_suggestion}</div>
+              {c.message_suggestion && !report.safety?.concern && <div className="rp-suggest"><span>{tr("r_suggest")}</span><div className="rp-m me">{c.message_suggestion}</div>
                 <button onClick={() => navigator.clipboard?.writeText(c.message_suggestion ?? "").catch(() => {})}>{tr("r_copy")}</button></div>}
             </article>
           ))}

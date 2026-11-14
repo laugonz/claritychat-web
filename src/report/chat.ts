@@ -249,6 +249,17 @@ export function sampleChat(chat: ParsedChat, stats: Stats, budget = 2200): { tra
     const planIdx = all.map((m, i) => (m.kind === "text" && PLAN.test(m.text) ? i : -1)).filter(i => i >= 0);
     const step = Math.max(1, Math.ceil(planIdx.length / Math.floor(budget / 10 / 6)));   // ~10% of the budget
     for (let k = 0; k < planIdx.length; k += step) add(planIdx[k] - 2, planIdx[k] + 4);
+    // Cancellations and postponements ("lo dejamos para otro día", "se me ha liado", "al final no"):
+    // a plan that breaks is usually a key moment, and it hides in the middle of long days.
+    const CANCEL = /(lo dejamos|dej[eé]moslo|otro d[ií]a|se me ha liado|me ha surgido|al final no|no puedo (hoy|al final)|mejor otro|lo aplazamos|cancel|rain check|another (day|time)|something came up|can'?t make it|rimandiamo|un altro giorno|non riesco|alla fine no|mi è saltat|ein andermal|ein anderes mal|klappt (doch )?nicht|kann (doch )?nicht|verschieben|abgesagt|une autre fois|on remet|je peux pas finalement|annul|empêchement|przełóżmy|innym razem|nie dam rady|jednak nie|odwoł)/i;
+    const seenDay = new Set<string>();
+    const cancelIdx = all.map((m, i) => {
+      if (m.kind !== "text" || !CANCEL.test(m.text)) return -1;
+      const d = `${m.date.getFullYear()}-${m.date.getMonth()}-${m.date.getDate()}`;
+      if (seenDay.has(d)) return -1; seenDay.add(d); return i;     // first one of each day
+    }).filter(i => i >= 0);
+    const cStep = Math.max(1, Math.ceil(cancelIdx.length / Math.floor(budget * 0.12 / 13)));   // ~12% of the budget
+    for (let k = 0; k < cancelIdx.length; k += cStep) add(cancelIdx[k] - 6, cancelIdx[k] + 7);
     if (picked.size < budget) {
       const step = Math.max(1, Math.floor(all.length / Math.max(1, Math.floor((budget - picked.size) / 8))));
       for (let i = 0; i < all.length && picked.size < budget; i += step) add(i, i + 8);
@@ -343,4 +354,21 @@ export function countTerms(chat: ParsedChat, terms: string[]): Record<string, Re
     out[t] = rec;
   }
   return out;
+}
+
+// ---------- quote check ----------
+const norm = (t: string) => t.toLowerCase().normalize("NFKC").replace(/[\s\u200e\u200f]+/g, " ").replace(/[“”«»"']/g, "").trim();
+
+/** Drops chat bubbles (key_exchange, topic_timeline) that don't exist in the real chat. The AI must only copy real messages. */
+export function verifyQuotes<R extends { chapters: { key_exchange?: { text: string }[]; topic_timeline?: { steps: { text: string }[] } | null }[] }>(report: R, chat: ParsedChat): { report: R; dropped: number } {
+  const bodies = chat.messages.filter(m => m.kind === "text").map(m => norm(m.text));
+  const exists = (t: string) => { const n = norm(t); return n.length > 0 && bodies.some(b => b === n || (n.length >= 12 && b.includes(n))); };
+  let dropped = 0;
+  const keep = <T extends { text: string }>(xs: T[]) => xs.filter(x => { const ok = exists(x.text); if (!ok) dropped++; return ok; });
+  const chapters = report.chapters.map(c => ({
+    ...c,
+    ...(c.key_exchange ? { key_exchange: keep(c.key_exchange) } : {}),
+    ...(c.topic_timeline?.steps ? { topic_timeline: { ...c.topic_timeline, steps: keep(c.topic_timeline.steps) } } : {}),
+  }));
+  return { report: { ...report, chapters }, dropped };
 }

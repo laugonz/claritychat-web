@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { unzipSync } from "fflate";
-import { buildViz, computeStats, countTerms, parseChat, safeName, sampleChat, statsForPrompt, type ParsedChat, type Stats, type Viz } from "../report/chat";
+import { buildViz, computeStats, countTerms, parseChat, safeName, sampleChat, statsForPrompt, verifyQuotes, type ParsedChat, type Stats, type Viz } from "../report/chat";
 import { Numbers, ReportView, type Report } from "../report/ReportView";
 import { Clara } from "../report/Mascot";
 import { StoryVisual } from "../report/StoryVisual";
@@ -175,6 +175,9 @@ function ReportFlow() {
     }
   }
 
+  // With the chat still in memory, only show bubbles that really exist in it.
+  const shown = useMemo(() => (report && chat ? verifyQuotes(report, chat).report : report), [report, chat]);
+
   // Funnel: did they see the paywall, or the full report?
   const seenRef = useRef("");
   useEffect(() => {
@@ -293,7 +296,7 @@ function ReportFlow() {
         {step === "report" && (
           <section className="rp-screen rp-pad rp-letter">
             {report && (stats || viz?.stories?.length) ? <button className="rp-stories-again" onClick={() => setStep("stories")}>{tr("seeStories")}</button> : null}
-            {report ? <ReportView report={report} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} />
+            {shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} />
               : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
                   {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
               : !reportId && !consent ? <>
