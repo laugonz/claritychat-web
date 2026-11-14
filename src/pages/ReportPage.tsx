@@ -67,7 +67,12 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
 
   // One "visit" ping per browser session → Telegram (country from time zone, source from referrer). Nothing stored.
   useEffect(() => {
-    try { if (sessionStorage.getItem("rp-visit")) return; sessionStorage.setItem("rp-visit", "1"); } catch { /* private mode: still ping once */ }
+    // One visit per device every 12 h (Android restores old tabs when Chrome opens; those aren't new visits).
+    try {
+      const last = Number(localStorage.getItem("rp-visit-at") || 0);
+      if (Date.now() - last < 12 * 3600 * 1000) return;
+      localStorage.setItem("rp-visit-at", String(Date.now()));
+    } catch { /* private mode: still ping once */ }
     let ref = "";
     try {
       if (document.referrer) {
