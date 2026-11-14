@@ -1540,3 +1540,10 @@ h1, h2, h3 { overflow-wrap: anywhere; }
 .ms-split i{display:block;height:10px;border-radius:99px;background:#42c5ca}
 .ms-split i + i{background:#ff8b45}
 @media (max-width:760px){.hero-wrapped{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.mini-story{padding:10px 9px 12px}.ms-label{font-size:10.5px}.ms-sil div{font-size:9.5px;padding:4px 5px}}
+
+.wrapped-cta-box{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-block:28px;padding:22px 24px;border-radius:22px;background:linear-gradient(135deg,#0c2138 0%,#2b1055 100%);color:#f3f7fb}
+.wrapped-cta-box > div{display:flex;flex-direction:column;gap:6px;flex:1 1 320px;min-width:0}
+.wrapped-cta-box strong{font-size:22px;line-height:1.2;color:#fff}
+.wrapped-cta-box p{margin:0;color:#b9c8d8;font-size:15px}
+.wrapped-cta-box .eyebrow{color:#42c5ca}
+.wrapped-cta-box .wrapped-cta{flex:none}

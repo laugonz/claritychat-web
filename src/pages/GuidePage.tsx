@@ -1,5 +1,5 @@
 import { useLocale, useContent } from "../i18n";
-import { CtaCallout, FaqItem, GuideCard, PageFrame, SafetyNote } from "../components";
+import { CtaCallout, FaqItem, GuideCard, PageFrame, SafetyNote, WrappedCta } from "../components";
 import { type Guide } from "../data";
 
 function ArticleParagraph({ text }: { text: string }) {
@@ -41,6 +41,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           <div className="shell article-grid">
             <div className="article-body">
               <p className="article-intro">{guide.intro}</p>
+              <WrappedCta />
 
               {guide.howTo && (
                 <section className="howto-box" aria-labelledby="howto-heading">
@@ -75,6 +76,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
                 </section>
               )}
 
+              <WrappedCta />
               <section className="article-faq">
                 <span className="eyebrow">{t("Quick answers")}</span>
                 <h2>{t("Questions about this guide")}</h2>

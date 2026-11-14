@@ -154,3 +154,17 @@ export function SafetyNote() {
     </aside>
   );
 }
+
+export function WrappedCta() {
+  const { t, path } = useLocale();
+  return (
+    <aside className="wrapped-cta-box">
+      <div>
+        <span className="eyebrow">{t("New · WhatsApp Wrapped")}</span>
+        <strong>{t("Have the whole WhatsApp chat?")}</strong>
+        <p>{t("See who texts more, who always starts and who breaks the silences, in 30 seconds and for free. The chat never leaves your phone.")}</p>
+      </div>
+      <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
+    </aside>
+  );
+}
