@@ -13,6 +13,16 @@ type Step = "landing" | "count" | "setup" | "stories" | "report";
 const RELATIONS: [string, string][] = [["💘", "partner"], ["💔", "ex"], ["🫣", "almost"], ["🤝", "friend"], ["🏡", "family"], ["💼", "work"]];
 const relLabel = (id: string) => (id ? tr(`rel_${id}`) : "");
 const API = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_REPORT_API) || "https://api.emotions-detector.com";
+// Anonymous funnel events → our server (steps and coarse numbers only; never chat content or names).
+const SID = (() => { try { let v = sessionStorage.getItem("rp-sid"); if (!v) { v = Math.random().toString(36).slice(2, 14); sessionStorage.setItem("rp-sid", v); } return v; } catch { return Math.random().toString(36).slice(2, 14); } })();
+const pageLang = () => (typeof document !== "undefined" ? (document.documentElement.lang || "en").slice(0, 2) : "en");
+function track(name: string, props: Record<string, string | number> = {}) {
+  if (typeof window === "undefined") return;
+  const p: Record<string, string> = { lang: pageLang() };
+  for (const [k, v] of Object.entries(props)) p[k] = String(v);
+  fetch(`${API}/chat/event`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sid: SID, name, props: p }), keepalive: true }).catch(() => {});
+}
+const bucket = (n: number) => n < 200 ? "<200" : n < 1000 ? "200-1k" : n < 3000 ? "1k-3k" : n < 10000 ? "3k-10k" : "10k+";
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
   set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
@@ -70,6 +80,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
       }
     } catch { /* ignore */ }
     const utm = new URLSearchParams(location.search).get("utm_source");
+    track("page_view", { source: (utm || ref || "directo").slice(0, 60) });
     fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref }) }).catch(() => {});
   }, []);
@@ -81,11 +92,12 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
     if (!id || !/^[0-9a-f]{32}$/.test(id)) return;
     setReportId(id); setStep("report");
     const sid = q.get("session_id");
+    if (!sid) track("report_link_open");
     const c = store.get(`rp-counts-${id}`); if (c) try { setCounts(JSON.parse(c)); } catch { /* ignore */ }
     (async () => {
       if (sid) {
         const r = await fetch(`${API}/chat/report/${id}/unlock`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sid }) });
-        if (r.ok) { const d = await r.json(); setReport(d.report); if (d.viz) setViz(d.viz); history.replaceState(null, "", `${location.pathname}?r=${id}`); return; }
+        if (r.ok) { track("purchase"); const d = await r.json(); setReport(d.report); if (d.viz) setViz(d.viz); history.replaceState(null, "", `${location.pathname}?r=${id}`); return; }
         setPayError(tr("errPay"));
       }
       poll(id);
@@ -124,13 +136,23 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
       });
       if (!r.ok) throw new Error(String(r.status));
       const { id } = await r.json();
+      track("report_requested", { msgs: bucket(stats.total) });
       setReportId(id);
       history.replaceState(null, "", `${location.pathname}?r=${id}`);
       poll(id);
     } catch (e) {
+      track("report_failed", { reason: String((e as Error).message).slice(0, 20) });
       setReportError(String((e as Error).message) === "429" ? tr("errMany") : tr("errStart"));
     }
   }
+
+  // Funnel: did they see the paywall, or the full report?
+  const seenRef = useRef("");
+  useEffect(() => {
+    if (!report) return;
+    const kind = report.chapters.some(c => (c as { locked?: boolean }).locked) ? "paywall_view" : "report_read";
+    if (seenRef.current !== kind) { seenRef.current = kind; track(kind); }
+  }, [report]);
 
   // Count the private-dictionary terms in the WHOLE chat once the report arrives.
   useEffect(() => {
@@ -141,7 +163,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
   }, [report, chat, reportId]);
 
   async function pay() {
-    setPaying(true); setPayError("");
+    setPaying(true); setPayError(""); track("checkout_click");
     try {
       const r = await fetch(`${API}/chat/report/${reportId}/checkout`, { method: "POST" });
       const d = await r.json();
@@ -165,7 +187,9 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
       const parsed = parseChat(await readExport(file));
       if (parsed.messages.length < 20 || parsed.participants.length < 2) throw new Error("empty");
       setChat(parsed); setStats(computeStats(parsed)); setStep("count");
+      track("upload_ok", { msgs: bucket(parsed.messages.length), people: parsed.participants.length, os: /Android/i.test(navigator.userAgent) ? "android" : /iPhone|iPad/i.test(navigator.userAgent) ? "ios" : "desktop" });
     } catch (e) {
+      track("upload_error", { reason: String((e as Error).message).slice(0, 20) });
       setError((e as Error).message === "no-chat"
         ? tr("errNoChat")
         : tr("errRead"));
@@ -190,7 +214,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
-              <button className="rp-btn rp-main" disabled={busy} onClick={() => fileRef.current?.click()}>{busy ? tr("reading") : tr("upload")}</button>
+              <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
               <div className="rp-trust"><span>{tr("trustFree")}</span><span>{tr("trustTime")}</span><span>{tr("trustPrivate")}</span></div>
               <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
@@ -212,7 +236,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
         )}
 
         {step === "count" && stats && chat && (
-          <Counter stats={stats} names={stats.people.map(p => p.name)} onPick={n => { setMe(n); setStep("setup"); }} />
+          <Counter stats={stats} names={stats.people.map(p => p.name)} onPick={n => { setMe(n); setStep("setup"); track("who_selected"); }} />
         )}
 
         {step === "setup" && stats && (
@@ -220,7 +244,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
             relation={relation} setRelation={setRelation} question={question} setQuestion={setQuestion}
             context={context} setContext={setContext} email={email} setEmail={setEmail}
             consent={consent} setConsent={setConsent}
-            onDone={(given: boolean) => { setConsent(given); startReport(given); setStep("stories"); }} />
+            onDone={(given: boolean) => { track("consent", { value: given ? "yes" : "no" }); setConsent(given); startReport(given); setStep("stories"); }} />
         )}
 
         {step === "stories" && (stats || viz?.stories) && <Stories stories={stats ? buildStories(stats, me) : (viz!.stories as Story[])} lines={consent && stats && !report ? waitingLines(stats, me) : []} ready={!!report} onDone={() => setStep("report")} />}
@@ -296,6 +320,7 @@ function confetti(c: HTMLCanvasElement | null) {
 function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: string[]; ready: boolean; onDone: () => void }) {
   const line = useRotating(lines, 3200);
   const [i, setI] = useState(0);
+  const finish = () => { track("stories_done", { count: Math.min(i + 1, stories.length) }); onDone(); };
   const [paused, setPaused] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -304,12 +329,12 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
   const s = stories[i];
   useEffect(() => {
     if (paused || sharing) return;
-    const t = setTimeout(() => (i < stories.length - 1 ? setI(i + 1) : onDone()), 6500);
+    const t = setTimeout(() => (i < stories.length - 1 ? setI(i + 1) : finish()), 6500);
     return () => clearTimeout(t);
   }, [i, paused, sharing, stories.length, onDone]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); i < stories.length - 1 ? setI(i + 1) : onDone(); }
+      if (e.key === "ArrowRight" || e.key === " ") { e.preventDefault(); i < stories.length - 1 ? setI(i + 1) : finish(); }
       if (e.key === "ArrowLeft") setI(Math.max(0, i - 1));
     };
     window.addEventListener("keydown", onKey);
@@ -329,12 +354,12 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
       </div>
       <div className="rp-wm">claritychat.app</div>
       <button className="rp-tap rp-prev" aria-label={tr("prev")} onClick={() => setI(Math.max(0, i - 1))} />
-      <button className="rp-tap rp-next" aria-label={tr("nextStory")} onClick={() => (i < stories.length - 1 ? setI(i + 1) : onDone())} />
+      <button className="rp-tap rp-next" aria-label={tr("nextStory")} onClick={() => (i < stories.length - 1 ? setI(i + 1) : finish())} />
       <button className="rp-arrow rp-arrow-l" aria-label={tr("prev")} onClick={() => setI(Math.max(0, i - 1))}>‹</button>
-      <button className="rp-arrow rp-arrow-r" aria-label={tr("nextStory")} onClick={() => (i < stories.length - 1 ? setI(i + 1) : onDone())}>›</button>
+      <button className="rp-arrow rp-arrow-r" aria-label={tr("nextStory")} onClick={() => (i < stories.length - 1 ? setI(i + 1) : finish())}>›</button>
       <div className="rp-story-foot">
         <button className="rp-btn rp-ghost" onClick={() => setSharing(true)}>{tr("share")}</button>
-        <button className="rp-btn rp-teal" onClick={onDone}>{tr("toReport")}</button>
+        <button className="rp-btn rp-teal" onClick={finish}>{tr("toReport")}</button>
       </div>
       {sharing && (
         <div className="rp-sheet" onClick={() => setSharing(false)}>
@@ -346,7 +371,7 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
             </div>
             <button className="rp-btn rp-main" disabled={saving} onClick={async () => {
               setSaving(true);
-              try { const r = await shareCard(s); setSaved(r === "downloaded" ? tr("imgDownloaded") : r === "shared" ? tr("done") : ""); }
+              try { const r = await shareCard(s); track("share_card", { value: r }); setSaved(r === "downloaded" ? tr("imgDownloaded") : r === "shared" ? tr("done") : ""); }
               catch { setSaved(tr("imgFail")); }
               setSaving(false);
             }}>{saving ? tr("imgMaking") : canShareFiles ? tr("imgShare") : tr("imgDownload")}</button>
@@ -403,7 +428,7 @@ function Setup(p: {
 
       <Ask html={tr("askRel", { other: p.otherName.replace(/[&<>"]/g, "") })} />
       {q === 0
-        ? <div className="rp-opts">{RELATIONS.map(([, r]) => <button key={r} aria-pressed={p.relation === r} onClick={() => { p.setRelation(r); setQ(1); }}>{relLabel(r)}</button>)}</div>
+        ? <div className="rp-opts">{RELATIONS.map(([, r]) => <button key={r} aria-pressed={p.relation === r} onClick={() => { p.setRelation(r); setQ(1); track("setup_relation", { value: r }); }}>{relLabel(r)}</button>)}</div>
         : <Reply text={relLabel(p.relation)} />}
 
       {q >= 1 && <>
@@ -411,7 +436,7 @@ function Setup(p: {
         {q === 1 ? <>
           {chips(WORRIES[p.relation] ?? WORRIES_LOVE, p.question, p.setQuestion)}
           {free(p.question, p.setQuestion, tr("sayWorry"))}
-          <button className="rp-btn rp-teal" onClick={() => setQ(2)}>{p.question ? tr("next") : tr("ratherNot")}</button>
+          <button className="rp-btn rp-teal" onClick={() => { setQ(2); track("setup_worry", { value: p.question ? "answered" : "skipped" }); }}>{p.question ? tr("next") : tr("ratherNot")}</button>
         </> : (p.question ? <Reply text={p.question} /> : <Reply text={tr("ratherNot")} />)}
       </>}
 
@@ -420,7 +445,7 @@ function Setup(p: {
         {q === 2 ? <>
           {chips(OUTSIDE, p.context, p.setContext)}
           {free(p.context, p.setContext, tr("sayOutside"))}
-          <button className="rp-btn rp-teal" onClick={() => setQ(3)}>{tr("next")}</button>
+          <button className="rp-btn rp-teal" onClick={() => { setQ(3); track("setup_outside", { value: p.context ? "answered" : "skipped" }); }}>{tr("next")}</button>
         </> : (p.context ? <Reply text={p.context} /> : null)}
       </>}
 
