@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { unzipSync } from "fflate";
 import { buildViz, computeStats, countTerms, parseChat, safeName, sampleChat, statsForPrompt, type ParsedChat, type Stats, type Viz } from "../report/chat";
-import { ReportView, type Report } from "../report/ReportView";
+import { Numbers, ReportView, type Report } from "../report/ReportView";
 import { Clara } from "../report/Mascot";
 import { StoryVisual } from "../report/StoryVisual";
 import { shareCard } from "../report/shareCard";
 import { buildStories, waitingLines, type Story } from "../report/stories";
 import { homePath, loc, setLang, tr } from "../report/i18n";
+import { exampleFor, exampleHref } from "../report/examples";
 import "../report/report.css";
 
 type Step = "landing" | "count" | "setup" | "stories" | "report";
@@ -15,10 +16,13 @@ const relLabel = (id: string) => (id ? tr(`rel_${id}`) : "");
 const API = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_REPORT_API) || "https://api.emotions-detector.com";
 // Anonymous funnel events → our server (steps and coarse numbers only; never chat content or names).
 const SID = (() => { try { let v = sessionStorage.getItem("rp-sid"); if (!v) { v = Math.random().toString(36).slice(2, 14); sessionStorage.setItem("rp-sid", v); } return v; } catch { return Math.random().toString(36).slice(2, 14); } })();
+// Our own tests: open any page once with ?internal=1 and the whole session is tagged (no Telegram pings).
+const INTERNAL = (() => { try { if (typeof location !== "undefined" && new URLSearchParams(location.search).get("internal") === "1") sessionStorage.setItem("rp-int", "1"); return sessionStorage.getItem("rp-int") === "1"; } catch { return false; } })();
 const pageLang = () => (typeof document !== "undefined" ? (document.documentElement.lang || "en").slice(0, 2) : "en");
 function track(name: string, props: Record<string, string | number> = {}) {
   if (typeof window === "undefined") return;
   const p: Record<string, string> = { lang: pageLang() };
+  if (INTERNAL) p.int = "1";
   for (const [k, v] of Object.entries(props)) p[k] = String(v);
   fetch(`${API}/chat/event`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sid: SID, name, props: p }), keepalive: true }).catch(() => {});
 }
@@ -28,12 +32,19 @@ const store = {
   set: (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } },
 };
 
+/** Contacts saved only as a phone number travel as "Contacto N" (also inside the chart data). */
+function maskNames(json: string, participants: string[]): string {
+  for (const p of participants) { const s = safeName(p, participants); if (s !== p) json = json.split(JSON.stringify(p).slice(1, -1)).join(s); }
+  return json;
+}
+
 async function readExport(file: File): Promise<string> {
   const buf = new Uint8Array(await file.arrayBuffer());
   let bytes: Uint8Array = buf;
   if (file.name.toLowerCase().endsWith(".zip") || (buf[0] === 0x50 && buf[1] === 0x4b)) {
     const files = unzipSync(buf, { filter: f => f.name.toLowerCase().endsWith(".txt") && !f.name.includes("__MACOSX") });
-    const name = Object.keys(files).find(n => n.endsWith("_chat.txt")) ?? Object.keys(files)[0];
+    const keys = Object.keys(files);
+    const name = keys.find(n => /(_chat|whatsapp)[^/]*\.txt$/i.test(n)) ?? keys.sort((a, b) => files[b].length - files[a].length)[0];
     if (!name) throw new Error("no-chat");
     bytes = files[name];
   }
@@ -41,8 +52,13 @@ async function readExport(file: File): Promise<string> {
   return new TextDecoder(utf16 ? "utf-16le" : "utf-8").decode(bytes);
 }
 
-export default function ReportPage({ locale }: { locale?: string } = {}) {
+export default function ReportPage({ locale, example }: { locale?: string; example?: boolean } = {}) {
   if (locale) setLang(locale);
+  const isExample = example ?? (typeof location !== "undefined" && /\/report\/example\/?$/.test(location.pathname));
+  return isExample ? <ExamplePage /> : <ReportFlow />;
+}
+
+function ReportFlow() {
   const [step, setStep] = useState<Step>("landing");
   const [os, setOs] = useState<"ios" | "android" | "desktop">("ios");
   const [drag, setDrag] = useState(false);
@@ -97,7 +113,8 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
     if (!id || !/^[0-9a-f]{32}$/.test(id)) return;
     setReportId(id); setStep("report");
     const sid = q.get("session_id");
-    if (!sid) track("report_link_open");
+    if (q.get("c") === "1") { track("checkout_cancel"); history.replaceState(null, "", `${location.pathname}?r=${id}`); }
+    else if (!sid) track("report_link_open");
     const c = store.get(`rp-counts-${id}`); if (c) try { setCounts(JSON.parse(c)); } catch { /* ignore */ }
     (async () => {
       if (sid) {
@@ -116,7 +133,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
         if (r.status === 404) { setReportError(tr("errGone")); return; }
         const d = await r.json();
         if (d.viz) setViz(d.viz);
-        if (d.status === "ready") { setReport(d.report); return; }
+        if (d.status === "ready") { if (k > 0) track("report_ready"); setReport(d.report); return; }
         if (d.status === "error") { setReportError(tr("errGen")); return; }
       } catch { /* network blip: keep polling */ }
       await new Promise(res => setTimeout(res, 4000));
@@ -124,8 +141,8 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
     setReportError(tr("errSlow"));
   }
 
-  async function startReport(given?: boolean) {
-    if (!chat || !stats || !(given ?? consent) || reportId) return;
+  async function startReport(given?: boolean, retry = false) {
+    if (!chat || !stats || !(given ?? consent) || (reportId && !retry)) return;
     const v = { ...buildViz(stats, me), stories: buildStories(stats, me) }; setViz(v);
     const sample = sampleChat(chat, stats);
     const lang = (document.documentElement.lang || "es").slice(0, 2);
@@ -136,7 +153,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
         body: JSON.stringify({
           userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang,
           historyNote: stats.historyMayBeIncomplete ? tr("historyNote", { d: fmt(stats.first) }) : "",
-          stats: JSON.stringify(statsForPrompt(stats, chat.participants)), transcript: sample.transcript, viz: JSON.stringify(v),
+          stats: JSON.stringify(statsForPrompt(stats, chat.participants)), transcript: sample.transcript, viz: maskNames(JSON.stringify(v), chat.participants),
         }),
       });
       if (!r.ok) throw new Error(String(r.status));
@@ -154,10 +171,10 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
   // Funnel: did they see the paywall, or the full report?
   const seenRef = useRef("");
   useEffect(() => {
-    if (!report) return;
+    if (!report || step !== "report") return;   // only when it's actually on screen (not while still in the stories)
     const kind = report.chapters.some(c => (c as { locked?: boolean }).locked) ? "paywall_view" : "report_read";
     if (seenRef.current !== kind) { seenRef.current = kind; track(kind); }
-  }, [report]);
+  }, [report, step]);
 
   // Count the private-dictionary terms in the WHOLE chat once the report arrives.
   useEffect(() => {
@@ -218,23 +235,30 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
               <div className="rp-hello"><Clara size={64} /><span>{tr("hello1")}<br />{tr("hello2")}</span></div>
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
-              <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
+              <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
               <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
-              <div className="rp-trust"><span>{tr("trustFree")}</span><span>{tr("trustTime")}</span><span>{tr("trustPrivate")}</span></div>
-              <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
-              {error && <p className="rp-error" role="alert">{error}</p>}
+              {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
+              <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
               <div className="rp-how">
+                <p className="rp-how-h">{tr("howHead")}</p>
                 <div className="rp-tabs" role="tablist">
                   <button role="tab" aria-selected={os === "ios"} onClick={() => setOs("ios")}>iPhone</button>
                   <button role="tab" aria-selected={os === "android"} onClick={() => setOs("android")}>Android</button>
                   <button role="tab" aria-selected={os === "desktop"} onClick={() => setOs("desktop")}>{tr("tabDesktop")}</button>
                 </div>
-                {os === "ios" && <Steps ids={["ios1", "ios2", "ios3"]} />}
-                {os === "android" && <Steps ids={["and1", "and2", "and3"]} />}
+                {os === "ios" && <><Steps ids={["ios1", "ios2", "ios3"]} /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("iosTip") }} /></>}
+                {os === "android" && <><Steps ids={["and1", "and2", "and3"]} /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("andTip") }} /></>}
                 {os === "desktop" && <Steps ids={["desk1", "desk2", "desk3"]} />}
               </div>
+              <div className="rp-trust"><span>{tr("trustFree")}</span><span>{tr("trustTime")}</span><span>{tr("trustPrivate")}</span></div>
+              <a className="rp-example-link" href={exampleHref()} onClick={() => track("sample_open", { from: "landing" })}>{tr("seeExample")}</a>
+              <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
               <p className="rp-lock">{tr("lock")}</p>
+              <section className="rp-faq">
+                <h2>{tr("faqTitle")}</h2>
+                {[1, 2, 3, 4].map(k => <details key={k} onToggle={e => { if ((e.currentTarget as HTMLDetailsElement).open) track("faq_open", { value: k }); }}><summary>{tr(`faq${k}q`)}</summary><p>{tr(`faq${k}a`)}</p></details>)}
+              </section>
             </div>
             <div className="rp-hero-demo" aria-hidden="true"><DemoPhone /></div>
           </section>
@@ -258,10 +282,16 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
           <section className="rp-screen rp-pad rp-letter">
             {report && (stats || viz?.stories?.length) ? <button className="rp-stories-again" onClick={() => setStep("stories")}>{tr("seeStories")}</button> : null}
             {report ? <ReportView report={report} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} />
-              : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p></>
-              : !reportId && !consent ? <><h1>{tr("needsOk")}</h1><p className="rp-muted">{tr("needsOkText")}</p>
-                  {stats && <button className="rp-btn rp-ghost-ink" onClick={() => setStep("setup")}>{tr("back")}</button>}</>
-              : <WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} />}
+              : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
+                  {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
+              : !reportId && !consent ? <>
+                  {stats && <Numbers viz={{ ...buildViz(stats, me), stories: buildStories(stats, me) }} />}
+                  <div className="rp-pitch"><Clara size={44} mood="soft" /><div>
+                    <p>{tr("noConsentPitch", { T: otherName })}</p>
+                    <p className="rp-hint">{tr("consentSend")} {tr("consentPrivate")}</p>
+                    {stats && <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late" }); setConsent(true); startReport(true); }}>{tr("consentYes")}</button>}
+                  </div></div></>
+              : <><WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} />{viz && <Numbers viz={viz} />}</>}
           </section>
         )}
       </div>
@@ -410,7 +440,8 @@ function Setup(p: {
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
   // A random example report each time (written examples, not AI, not the user's chat).
-  const [preview] = useState(() => { const n = 1 + Math.floor(Math.random() * 5); return n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` }; });
+  const [preview] = useState(() => { let n = 1; try { n = Number(sessionStorage.getItem("rp-ex")) || (Math.random() < 0.5 ? 1 : 3); sessionStorage.setItem("rp-ex", String(n)); } catch { /* private mode */ } return n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` }; });
+  useEffect(() => { if (q === 3) track("consent_view", { ex: `ex${preview.n}` }); }, [q]);
   const decide = (yes: boolean) => { track("consent", { value: yes ? "yes" : "no", step: `ex${preview.n}` }); p.onDone(yes); };
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
@@ -467,6 +498,7 @@ function Setup(p: {
               <svg viewBox="0 0 300 60" width="100%" height="46"><polyline points="0,45 40,35 80,38 120,20 160,28 200,12 240,22 300,8" fill="none" stroke="#42c5ca" strokeWidth="4" /><polyline points="0,50 40,48 80,50 120,38 160,42 200,32 240,36 300,28" fill="none" stroke="#ff8b45" strokeWidth="4" /></svg>
               <i style={{ width: "76%" }} /><i style={{ width: "90%" }} /></div>
           </div>
+          <a className="rp-example-link" href={exampleHref()} target="_blank" rel="noopener" onClick={() => track("sample_open", { from: "consent" })}>{tr("seeExample")}</a>
           <strong>{tr("benefitTitle")}</strong>
           <ul className="rp-benefits">
             <li><Icon name="book" /><span>{tr("benefitStory")}</span></li>
@@ -568,4 +600,22 @@ function Icon({ name }: { name: "send" | "lock" | "tag" | "check" | "chart" | "b
     compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15.5 8.5l-2 5-5 2 2-5z",
   };
   return <svg className="rp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d[name]} /></svg>;
+}
+
+function ExamplePage() {
+  const ex = exampleFor(typeof document !== "undefined" ? (document.documentElement.lang || "es").slice(0, 2) : "es");
+  const first = (n: string) => n.split(" ")[0];
+  const home = typeof location !== "undefined" ? location.pathname.replace(/example\/?$/, "") : "../";
+  return (
+    <div className="rp">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" />
+      <div className="rp-shell rp-at-report">
+        <section className="rp-screen rp-pad rp-letter">
+          <p className="rp-ex-banner"><Clara size={30} mood="soft" /><span>{tr("exBanner", { a: first(ex.viz.me), b: first(ex.viz.other) })}</span></p>
+          <ReportView report={ex.report} viz={ex.viz} onPay={() => {}} paying={false} example />
+          <div className="rp-ex-cta"><a className="rp-btn rp-main" href={home} onClick={() => track("sample_open", { from: "example_cta" })}>{tr("exCta")}</a><p className="rp-hint">{tr("exCtaNote")}</p></div>
+        </section>
+      </div>
+    </div>
+  );
 }

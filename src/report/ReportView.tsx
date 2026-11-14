@@ -6,6 +6,7 @@ import { Clara } from "./Mascot";
 import { StoryVisual } from "./StoryVisual";
 import type { Story } from "./stories";
 import { claraName, loc, tr } from "./i18n";
+import { exampleHref } from "./examples";
 
 export type Chapter = {
   id: string; emoji?: string; title: string; body?: string; locked?: boolean; message_suggestion?: string | null;
@@ -15,7 +16,7 @@ export type Chapter = {
   dictionary?: { term: string; meaning: string; who: string }[];
   topic_timeline?: { topic: string; steps: { date: string; author: string; text: string; note?: string | null }[] } | null;
 };
-export type Report = { title: string; verdict: string; chapters: Chapter[]; follow_ups?: { title: string; teaser?: string }[]; safety?: { concern: boolean; note?: string | null } };
+export type Report = { title: string; verdict: string; hook?: string; chapters: Chapter[]; follow_ups?: { title: string; teaser?: string }[]; safety?: { concern: boolean; note?: string | null } };
 
 const first = (n: string) => n.split(" ")[0];
 const esc = (x: string) => x.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
@@ -232,7 +233,7 @@ function Emojis({ viz }: { viz: Viz }) {
   );
 }
 
-function Numbers({ viz }: { viz: Viz }) {
+export function Numbers({ viz }: { viz: Viz }) {
   if (!viz.stories?.length && !viz.weekdays) return null;   // older reports: nothing to show
   return (
     <section className="rp-chapter rp-numbers">
@@ -253,9 +254,26 @@ function Numbers({ viz }: { viz: Viz }) {
   );
 }
 
-export function ReportView({ report, viz, counts, onPay, paying, payError }: {
+const WHY: Record<string, string> = { who_gives: "r_lockWhy_who_gives", signals: "r_lockWhy_signals", language: "r_lockWhy_language", unsaid: "r_lockWhy_unsaid", next: "r_lockWhy_next" };
+
+/** Free part of chapter 1: first paragraph → 2–3 real messages from the key moment (proof Clara read YOUR chat) → second paragraph, fading out. */
+function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNode }) {
+  const ps = paras(c.body);
+  return (
+    <article className="rp-chapter rp-cut rp-cut-blur">
+      {head}
+      <div className="rp-prose">
+        {ps[0] && <p><Rich text={ps[0]} /></p>}
+        <Exchange msgs={(c.key_exchange ?? []).slice(0, 3)} me={viz?.me ?? ""} />
+        {ps.slice(1, 2).map((p, k) => <p key={k}><Rich text={p} /></p>)}
+      </div>
+    </article>
+  );
+}
+
+export function ReportView({ report, viz, counts, onPay, paying, payError, example }: {
   report: Report; viz: Viz | null; counts?: Record<string, Record<string, number>>;
-  onPay: () => void; paying: boolean; payError?: string;
+  onPay: () => void; paying: boolean; payError?: string; example?: boolean;
 }) {
   const locked = report.chapters.some(c => c.locked);
   const lockIcon = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
@@ -264,21 +282,23 @@ export function ReportView({ report, viz, counts, onPay, paying, payError }: {
     <div className="rp-report">
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
-      <button className="rp-copylink" onClick={e => { const b = e.currentTarget; navigator.clipboard?.writeText(location.href).then(() => { b.textContent = tr("r_copied"); }, () => { b.textContent = location.href; }); }}>{tr("r_copyLink")}</button>
+      {!example && <button className="rp-copylink" onClick={e => { const b = e.currentTarget; navigator.clipboard?.writeText(location.href).then(() => { b.textContent = tr("r_copied"); }, () => { b.textContent = location.href; }); }}>{tr("r_copyLink")}</button>}
       <p className="rp-verdict"><Rich text={report.verdict} /></p>
       {report.safety?.concern && report.safety.note && <p className="rp-safety">{report.safety.note}</p>}
       {locked ? (
         <>
-          <article className="rp-chapter rp-cut rp-cut-blur">{chapterHead(report.chapters[0], 0)}<Body c={report.chapters[0]} i={0} viz={viz} counts={counts} /></article>
+          <FreePart c={report.chapters[0]} viz={viz} head={chapterHead(report.chapters[0], 0)} />
           <div className="rp-ghost-text" aria-hidden="true">{[96, 88, 92, 70, 94, 85, 60].map((w, k) => <i key={k} style={{ width: `${w}%` }} />)}</div>
           <div className="rp-paywall">
+            {report.hook && <p className="rp-hook"><Rich text={report.hook} /></p>}
             <h3>{tr("r_keepReading")}</h3>
-            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
-            <div className="rp-price"><strong>{tr("r_price")}</strong><em>{tr("r_launch")}</em></div>
-            <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_readFull")}</button>
+            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i > 0 && WHY[c.id] ? <small>{tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
+            <div className="rp-price"><strong>{tr("r_price")}</strong></div>
+            <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button>
             <p className="rp-hint rp-waiver">{tr("r_waiver")}</p>
             {payError && <p className="rp-error" role="alert">{payError}</p>}
             <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_payNote")}</p>
+            <a className="rp-example-link rp-example-paywall" href={exampleHref()}>{tr("seeExample")}</a>
           </div>
         </>
       ) : (

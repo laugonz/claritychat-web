@@ -350,3 +350,38 @@
 /* blurred "text" between the cut chapter and the paywall */
 .rp-ghost-text{display:flex;flex-direction:column;gap:12px;margin:-8px 0 18px;filter:blur(4px);opacity:.55}
 .rp-ghost-text i{display:block;height:13px;border-radius:7px;background:var(--rp-ink-soft)}
+
+/* ---- landing: price ladder, how-to header/tips, sample link, FAQ ---- */
+.rp-ladder{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--rp-on-soft)}
+.rp-ladder li{display:flex;gap:8px;align-items:baseline}
+.rp-ladder li::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--rp-teal);transform:translateY(-1px)}
+.rp-ladder li:last-child::before{background:var(--rp-orange)}
+.rp-ladder b{color:var(--rp-on)}
+.rp-how-h{margin:0;font-weight:700;font-size:15px}
+.rp-how-tip{margin:0;font-size:13px;color:var(--rp-on-soft)}
+.rp-example-link{color:var(--rp-teal);font-weight:700;text-decoration:none;font-size:15px;align-self:flex-start}
+.rp-example-link:hover{text-decoration:underline}
+.rp-faq{display:flex;flex-direction:column;gap:8px}
+.rp-faq h2{font-size:18px}
+.rp-faq details{background:var(--rp-navy-2);border-radius:14px;padding:12px 14px}
+.rp-faq summary{cursor:pointer;font-weight:600;font-size:15px;list-style:none;display:flex;justify-content:space-between;gap:10px}
+.rp-faq summary::-webkit-details-marker{display:none}
+.rp-faq summary::after{content:"+";color:var(--rp-teal);font-weight:700}
+.rp-faq details[open] summary::after{content:"–"}
+.rp-faq p{margin:8px 0 0;font-size:14px;color:var(--rp-on-soft)}
+
+/* ---- sample report ---- */
+.rp-ex-banner{display:flex;gap:10px;align-items:center;background:var(--rp-paper-2);border:1px dashed var(--rp-line);border-radius:14px;padding:10px 12px;font-size:13.5px;color:var(--rp-ink-soft);margin:0 0 18px}
+.rp-ex-banner .rp-mascot{flex:none}
+.rp-ex-cta{display:flex;flex-direction:column;align-items:stretch;gap:8px;text-align:center;padding:26px 0 10px}
+.rp-ex-cta .rp-btn{text-decoration:none;text-align:center}
+
+/* ---- paywall hook + chapter promises; no-consent pitch ---- */
+.rp-hook{font-family:var(--rp-letter);font-style:italic;font-size:18px;line-height:1.45;color:var(--rp-ink);margin:0 0 6px}
+.rp-locked li small{display:block;font-size:12.5px;color:var(--rp-ink-soft);font-weight:500;margin-top:1px}
+.rp-pitch{display:flex;gap:12px;align-items:flex-start;background:var(--rp-card);border:1px solid var(--rp-line);border-radius:18px;padding:16px;margin:18px 0}
+.rp-pitch .rp-mascot{flex:none}
+.rp-pitch > div{display:flex;flex-direction:column;gap:10px}
+.rp-pitch p{margin:0}
+.rp-consent-card .rp-example-link{font-size:14px;margin-top:-4px}
+.rp-example-paywall{align-self:center;display:block;text-align:center;color:var(--rp-teal-deep);font-size:14px;margin-top:4px}

@@ -2,6 +2,7 @@ import { LANGUAGES, localizedPath } from "./i18n";
 import { renderToStaticMarkup } from "react-dom/server";
 import { ROUTES, type Route } from "./routes";
 import { SITE } from "./data";
+import { hasOwnExample } from "./report/examples";
 
 const esc = (value: string) => value
   .replaceAll("&", "&amp;")
@@ -31,8 +32,8 @@ export function renderRoute(route: Route) {
   <meta name="theme-color" content="#081426">
   <meta name="apple-itunes-app" content="app-id=${SITE.appId}">
   <link rel="canonical" href="${esc(route.meta.canonical)}">
-  ${LANGUAGES.map(({ code }) => `<link rel="alternate" hreflang="${code}" href="${SITE.url}${localizedPath(code, route.basePath)}">`).join("\n  ")}
-  <link rel="alternate" hreflang="x-default" href="${SITE.url}${route.basePath}">
+  ${LANGUAGES.filter(({ code }) => route.basePath !== "/report/example/" || hasOwnExample(code)).map(({ code }) => `<link rel="alternate" hreflang="${code}" href="${SITE.url}${localizedPath(code, route.basePath)}">`).join("\n  ")}
+  <link rel="alternate" hreflang="x-default" href="${SITE.url}${route.basePath === "/report/example/" ? localizedPath("es", route.basePath) : route.basePath}">
   <meta property="og:locale" content="${({ en: "en_US", es: "es_ES", fr: "fr_FR", de: "de_DE", it: "it_IT", pl: "pl_PL" })[route.locale]}">
   <link rel="icon" href="/assets/icon.png">
   <link rel="apple-touch-icon" href="/assets/icon.png">
@@ -54,7 +55,7 @@ export function renderRoute(route: Route) {
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>${route.basePath === "/report/" ? `\n  <link rel="stylesheet" href="/assets/report/report-app.css?v=${BUILD}">\n  <script type="module" src="/assets/report/report-app.js?v=${BUILD}"></script>` : ""}
+  <script defer src="/_vercel/insights/script.js"></script>${route.basePath.startsWith("/report/") ? `\n  <link rel="stylesheet" href="/assets/report/report-app.css?v=${BUILD}">\n  <script type="module" src="/assets/report/report-app.js?v=${BUILD}"></script>` : ""}
 </body>
 </html>`;
 }
