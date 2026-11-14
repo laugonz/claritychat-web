@@ -54,7 +54,7 @@ export function renderRoute(route: Route) {
   <script>
     window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   </script>
-  <script defer src="/_vercel/insights/script.js"></script>${route.basePath === "/report/" ? '\n  <link rel="stylesheet" href="/assets/report/report-app.css?v=${BUILD}">\n  <script type="module" src="/assets/report/report-app.js?v=${BUILD}"></script>' : ""}
+  <script defer src="/_vercel/insights/script.js"></script>${route.basePath === "/report/" ? `\n  <link rel="stylesheet" href="/assets/report/report-app.css?v=${BUILD}">\n  <script type="module" src="/assets/report/report-app.js?v=${BUILD}"></script>` : ""}
 </body>
 </html>`;
 }
