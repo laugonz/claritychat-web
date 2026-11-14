@@ -254,6 +254,20 @@ export function Numbers({ viz }: { viz: Viz }) {
   );
 }
 
+/** Keep the private link: send it to yourself on WhatsApp, or copy it. */
+function SaveLink() {
+  const url = typeof location !== "undefined" ? location.href.replace(/[?&]session_id=[^&]+/, "") : "";
+  return (
+    <div className="rp-savelink">
+      <p>{tr("saveLinkT")}</p>
+      <div>
+        <a className="rp-wa" href={`https://wa.me/?text=${encodeURIComponent(tr("saveWaText", { u: url }))}`} target="_blank" rel="noopener">{tr("saveWa")}</a>
+        <button className="rp-copylink" onClick={e => { const b = e.currentTarget; navigator.clipboard?.writeText(url).then(() => { b.textContent = tr("r_copied"); }, () => { b.textContent = url; }); }}>{tr("r_copyLink")}</button>
+      </div>
+    </div>
+  );
+}
+
 const WHY: Record<string, string> = { who_gives: "r_lockWhy_who_gives", signals: "r_lockWhy_signals", language: "r_lockWhy_language", unsaid: "r_lockWhy_unsaid", next: "r_lockWhy_next" };
 
 /** Free part of chapter 1: first paragraph → 2–3 real messages from the key moment (proof Clara read YOUR chat) → second paragraph, fading out. */
@@ -282,7 +296,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
     <div className="rp-report">
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
-      {!example && <button className="rp-copylink" onClick={e => { const b = e.currentTarget; navigator.clipboard?.writeText(location.href).then(() => { b.textContent = tr("r_copied"); }, () => { b.textContent = location.href; }); }}>{tr("r_copyLink")}</button>}
+      {!example && <SaveLink />}
       <p className="rp-verdict"><Rich text={report.verdict} /></p>
       {report.safety?.concern && report.safety.note && <p className="rp-safety">{report.safety.note}</p>}
       {locked ? (

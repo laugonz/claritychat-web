@@ -1,7 +1,7 @@
 // Turns a story into a real 1080×1920 PNG (Instagram/TikTok story size) and
 // opens the phone's share sheet ("Save image" → gallery), or downloads it on desktop.
 import type { Story } from "./stories";
-import { tr } from "./i18n";
+import { lang, tr } from "./i18n";
 
 const strip = (html: string) => html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")
   .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
@@ -53,7 +53,7 @@ export async function shareCard(story: Story): Promise<string> {
   const file = new File([blob], tr("cardFile"), { type: "image/png" });
   const nav = navigator as Navigator & { canShare?: (d: ShareData) => boolean };
   if (nav.canShare?.({ files: [file] })) {
-    try { await nav.share({ files: [file], text: tr("shareText") }); return "shared"; }
+    try { await nav.share({ files: [file], text: tr("shareText", { u: `https://claritychat.app${lang() === "en" ? "" : "/" + lang()}/report/?utm_source=share_card` }) }); return "shared"; }
     catch (e) { if ((e as Error).name === "AbortError") return "cancelled"; }
   }
   const a = document.createElement("a");

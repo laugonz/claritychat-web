@@ -51,6 +51,7 @@ export default function Home() {
                 <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
                 <StoreButton />
               </div>
+              <p className="hero-wrapped-note">{t("Whole chat: free stats · full report €5.99, one-time")} · <a href={path("/report/example/")}>{t("See a sample report")} →</a></p>
               <p className="hero-note">{t("Free to download · Up to four screenshots · No account required")}</p>
               <div className="hero-proof" aria-label={t("Product principles")}>
                 <span><strong>{t("Private")}</strong>{" "}{t("Processed once, not sold for ads")}</span>

@@ -73,6 +73,11 @@ function ReportFlow() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  // A report from an earlier visit on this device (id only; reports live 30 days).
+  const [last, setLast] = useState<{ id: string; ts: number } | null>(null);
+  useEffect(() => {
+    try { const v = JSON.parse(store.get("rp-last") || "null"); if (v && /^[0-9a-f]{32}$/.test(v.id) && Date.now() - v.ts < 29 * 86400000 && !new URLSearchParams(location.search).get("r")) setLast(v); } catch { /* ignore */ }
+  }, []);
   const [reportId, setReportId] = useState("");
   const [report, setReport] = useState<Report | null>(null);
   const [viz, setViz] = useState<Viz | null>(null);
@@ -112,6 +117,7 @@ function ReportFlow() {
     const id = q.get("r");
     if (!id || !/^[0-9a-f]{32}$/.test(id)) return;
     setReportId(id); setStep("report");
+    store.set("rp-last", JSON.stringify({ id, ts: Date.now() }));
     const sid = q.get("session_id");
     if (q.get("c") === "1") { track("checkout_cancel"); history.replaceState(null, "", `${location.pathname}?r=${id}`); }
     else if (!sid) track("report_link_open");
@@ -159,6 +165,7 @@ function ReportFlow() {
       if (!r.ok) throw new Error(String(r.status));
       const { id } = await r.json();
       track("report_requested", { msgs: bucket(stats.total) });
+      store.set("rp-last", JSON.stringify({ id, ts: Date.now() }));
       setReportId(id);
       history.replaceState(null, "", `${location.pathname}?r=${id}`);
       poll(id);
@@ -207,14 +214,18 @@ function ReportFlow() {
     setError(""); setBusy(true);
     try {
       const parsed = parseChat(await readExport(file));
-      if (parsed.messages.length < 20 || parsed.participants.length < 2) throw new Error("empty");
+      if (parsed.participants.length < 2) throw new Error("solo");
+      if (parsed.messages.length < 20) throw new Error("short");
+      // Group chats: 3+ people who each write at least 5 % → the 1:1 report would be wrong.
+      const per = new Map<string, number>();
+      for (const m of parsed.messages) per.set(m.author, (per.get(m.author) ?? 0) + 1);
+      if ([...per.values()].filter(n => n >= parsed.messages.length * 0.05).length >= 3) throw new Error("group");
       setChat(parsed); setStats(computeStats(parsed)); setStep("count");
       track("upload_ok", { msgs: bucket(parsed.messages.length), people: parsed.participants.length, os: /Android/i.test(navigator.userAgent) ? "android" : /iPhone|iPad/i.test(navigator.userAgent) ? "ios" : "desktop" });
     } catch (e) {
-      track("upload_error", { reason: String((e as Error).message).slice(0, 20) });
-      setError((e as Error).message === "no-chat"
-        ? tr("errNoChat")
-        : tr("errRead"));
+      const reason = String((e as Error).message);
+      track("upload_error", { reason: ["no-chat", "solo", "short", "group"].includes(reason) ? reason : "format", count: bucket(file.size / 1024) });
+      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : tr("errRead"));
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   }
 
@@ -232,6 +243,7 @@ function ReportFlow() {
             onDrop={e => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]); }}>
             <div className="rp-hero-copy">
               <a className="rp-brand" href={homePath()}><i />Clarity Chat</a>
+              {last && <a className="rp-resume" href={`?r=${last.id}`} onClick={() => track("resume_click")}><Clara size={28} mood="soft" /><span>{tr("resumeT", { d: new Date(last.ts).toLocaleDateString(loc(), { day: "numeric", month: "long" }) })}</span><b>{tr("resumeBtn")} →</b></a>}
               <div className="rp-hello"><Clara size={64} /><span>{tr("hello1")}<br />{tr("hello2")}</span></div>
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
@@ -272,7 +284,7 @@ function ReportFlow() {
           <Setup meName={meName} otherName={otherName}
             relation={relation} setRelation={setRelation} question={question} setQuestion={setQuestion}
             context={context} setContext={setContext} email={email} setEmail={setEmail}
-            consent={consent} setConsent={setConsent}
+            consent={consent} setConsent={setConsent} short={stats.total < 150}
             onDone={(given: boolean) => { setConsent(given); startReport(given); setStep("stories"); }} />
         )}
 
@@ -435,7 +447,7 @@ function Steps({ ids }: { ids: string[] }) {
 function Setup(p: {
   meName: string; otherName: string; relation: string; setRelation: (v: string) => void;
   question: string; setQuestion: (v: string) => void; context: string; setContext: (v: string) => void;
-  email: string; setEmail: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void; onDone: (given: boolean) => void;
+  email: string; setEmail: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void; onDone: (given: boolean) => void; short?: boolean;
 }) {
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
@@ -499,6 +511,7 @@ function Setup(p: {
               <i style={{ width: "76%" }} /><i style={{ width: "90%" }} /></div>
           </div>
           <a className="rp-example-link" href={exampleHref()} target="_blank" rel="noopener" onClick={() => track("sample_open", { from: "consent" })}>{tr("seeExample")}</a>
+          {p.short && <p className="rp-short-note">{tr("shortNote")}</p>}
           <strong>{tr("benefitTitle")}</strong>
           <ul className="rp-benefits">
             <li><Icon name="book" /><span>{tr("benefitStory")}</span></li>
