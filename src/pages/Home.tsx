@@ -46,7 +46,7 @@ export default function Home() {
             <div className="hero-copy">
               <span className="eyebrow">{t("New · WhatsApp Wrapped")}</span>
               <h1>{t("AI text message analyzer for relationship clarity")}</h1>
-              <p className="hero-lead">{t("Upload your whole WhatsApp chat and see who writes more, who always texts first and who breaks the silences. Free, in 30 seconds, and it never leaves your phone.")}</p>
+              <p className="hero-lead">{t("Upload screenshots of any chat or your whole WhatsApp and discover the tone, the emotions and response patterns, who texts more and who breaks the silences. The stats are free, in 30 seconds.")}</p>
               <div className="hero-actions">
                 <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
                 <StoreButton />
