@@ -336,3 +336,6 @@
 .rp-convo .rp-ask{max-width:calc(100% - 42px)}
 .rp-convo .rp-steps{margin-left:42px;width:calc(100% - 42px)}
 .rp-convo .rp-reply{max-width:calc(100% - 84px)}
+.rp-benefits li span{color:var(--rp-on)}
+.rp-benefits .rp-icon{color:#ffb38a!important}
+.rp-consent-sub{margin-top:6px;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--rp-on-soft)}

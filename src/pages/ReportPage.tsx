@@ -451,7 +451,13 @@ function Setup(p: {
 
       {q >= 3 && <>
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
-          <strong>{tr("consentTitle")}</strong>
+          <strong>{tr("benefitTitle")}</strong>
+          <ul className="rp-benefits">
+            <li><Icon name="book" /><span>{tr("benefitStory")}</span></li>
+            <li><Icon name="eye" /><span>{tr("benefitTruth")}</span></li>
+            <li><Icon name="compass" /><span>{tr("benefitNext")}</span></li>
+          </ul>
+          <strong className="rp-consent-sub">{tr("privacyTitle")}</strong>
           <ul>
             <li><Icon name="send" /><span>{tr("consentSend")}</span></li>
             <li><Icon name="lock" /><span>{tr("consentPrivate")}</span></li>
@@ -534,13 +540,16 @@ function DemoPhone() {
 }
 
 /** Simple line icons (no emoji) for the consent step. */
-function Icon({ name }: { name: "send" | "lock" | "tag" | "check" | "chart" }) {
+function Icon({ name }: { name: "send" | "lock" | "tag" | "check" | "chart" | "book" | "eye" | "compass" }) {
   const d: Record<string, string> = {
     send: "M4 12l16-8-6 16-2.5-6.5L4 12z M11.5 13.5L20 4",
     lock: "M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3",
     tag: "M3 12V4h8l10 10-8 8L3 12z M7.5 8.5h.01",
     check: "M5 12.5l4.5 4.5L19 7.5",
     chart: "M5 20V10 M12 20V4 M19 20v-7",
+    book: "M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5",
+    eye: "M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z",
+    compass: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z M15.5 8.5l-2 5-5 2 2-5z",
   };
   return <svg className="rp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d[name]} /></svg>;
 }
