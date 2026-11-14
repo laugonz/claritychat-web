@@ -244,7 +244,7 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
             relation={relation} setRelation={setRelation} question={question} setQuestion={setQuestion}
             context={context} setContext={setContext} email={email} setEmail={setEmail}
             consent={consent} setConsent={setConsent}
-            onDone={(given: boolean) => { track("consent", { value: given ? "yes" : "no" }); setConsent(given); startReport(given); setStep("stories"); }} />
+            onDone={(given: boolean) => { setConsent(given); startReport(given); setStep("stories"); }} />
         )}
 
         {step === "stories" && (stats || viz?.stories) && <Stories stories={stats ? buildStories(stats, me) : (viz!.stories as Story[])} lines={consent && stats && !report ? waitingLines(stats, me) : []} ready={!!report} onDone={() => setStep("report")} />}
@@ -405,7 +405,8 @@ function Setup(p: {
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
   // A random example report each time (written examples, not AI, not the user's chat).
-  const [preview] = useState(() => { const n = 1 + Math.floor(Math.random() * 5); return n === 1 ? { t: "previewTitle", l: "previewLine" } : { t: `previewTitle${n}`, l: `previewLine${n}` }; });
+  const [preview] = useState(() => { const n = 1 + Math.floor(Math.random() * 5); return n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` }; });
+  const decide = (yes: boolean) => { track("consent", { value: yes ? "yes" : "no", step: `ex${preview.n}` }); p.onDone(yes); };
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
   const toggle = (cur: string, v: string, set: (x: string) => void) => {
@@ -476,8 +477,8 @@ function Setup(p: {
           <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a>
         </div></div>
         <div className="rp-consent-actions">
-          <button className="rp-btn rp-main" onClick={() => p.onDone(true)}><Icon name="check" />{tr("consentYes")}</button>
-          <button className="rp-linkbtn" onClick={() => p.onDone(false)}>{tr("statsOnly")}</button>
+          <button className="rp-btn rp-main" onClick={() => decide(true)}><Icon name="check" />{tr("consentYes")}</button>
+          <button className="rp-linkbtn" onClick={() => decide(false)}>{tr("statsOnly")}</button>
         </div>
       </>}
       <div ref={end} />
