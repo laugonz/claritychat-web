@@ -262,8 +262,8 @@ function ReportFlow() {
                   <button role="tab" aria-selected={os === "android"} onClick={() => setOs("android")}>Android</button>
                   <button role="tab" aria-selected={os === "desktop"} onClick={() => setOs("desktop")}>{tr("tabDesktop")}</button>
                 </div>
-                {os === "ios" && <><Steps ids={["ios1", "ios2", "ios3"]} /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("iosTip") }} /></>}
-                {os === "android" && <><Steps ids={["and1", "and2", "and3"]} /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("andTip") }} /></>}
+                {os === "ios" && <><VisualSteps os="ios" /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("iosTip") }} /></>}
+                {os === "android" && <><VisualSteps os="android" /><p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr("andTip") }} /></>}
                 {os === "desktop" && <Steps ids={["desk1", "desk2", "desk3"]} />}
               </div>
               <div className="rp-trust"><span>{tr("trustFree")}</span><span>{tr("trustTime")}</span><span>{tr("trustPrivate")}</span></div>
@@ -445,6 +445,33 @@ const OUTSIDE = ["o_phone", "o_person", "o_fight", "o_nocontact", "o_nothing"];
 
 function Steps({ ids }: { ids: string[] }) {
   return <ol>{ids.map(id => <li key={id} dangerouslySetInnerHTML={{ __html: tr(id) }} />)}</ol>;
+}
+
+/** The words in <b> of a step, e.g. "Exportar chat", "Sin archivos" — so the drawn screens use the same labels as WhatsApp in each language. */
+const bold = (id: string) => [...tr(id).matchAll(/<b>(.*?)<\/b>/g)].map(m => m[1]);
+
+/** Export how-to as three tiny drawn phone screens (not real WhatsApp screenshots), the thing to tap highlighted. */
+function VisualSteps({ os }: { os: "ios" | "android" }) {
+  const ids = os === "ios" ? ["ios1", "ios2", "ios3"] : ["and1", "and2", "and3"];
+  const [exp, noMedia] = os === "ios" ? bold("ios2") : [bold("and1")[2], bold("and2")[0]];
+  const save = os === "ios" ? bold("ios3")[0] : "Drive";
+  const header = (tapName: boolean, dots: boolean) => (
+    <div className="ms-head"><i className="ms-back" /><i className="ms-av" /><span className={tapName ? "ms-tap" : ""}>Dani</span>{dots && <b className="ms-dots ms-tap">⋮</b>}</div>
+  );
+  const screens = os === "ios" ? [
+    <>{header(true, false)}<div className="ms-b them" /><div className="ms-b me" /><div className="ms-b them s" /></>,
+    <><div className="ms-list"><i /><i /><i /><span className="ms-row ms-tap">{exp}</span></div><div className="ms-sheet"><span className="ms-row ms-tap">{noMedia}</span><i /></div></>,
+    <><div className="ms-sheet up"><div className="ms-icons"><i /><i /><i /><i /></div><span className="ms-row ms-tap">📁 {save}</span><i /></div></>,
+  ] : [
+    <>{header(false, true)}<div className="ms-menu"><i /><i /><span className="ms-row">{bold("and1")[1]} ›</span><span className="ms-row ms-tap">{exp}</span></div><div className="ms-b them s" /></>,
+    <><div className="ms-b them" /><div className="ms-dialog"><span className="ms-row ms-tap">{noMedia}</span><i /></div></>,
+    <><div className="ms-sheet up"><div className="ms-icons"><i className="ms-tap" /><i /><i /><i /></div><span className="ms-row ms-tap">{save}</span></div></>,
+  ];
+  return (
+    <ol className="ms-steps">{ids.map((id, k) => (
+      <li key={id}><div className="ms-phone" aria-hidden="true"><span className="ms-n">{k + 1}</span>{screens[k]}</div><p dangerouslySetInnerHTML={{ __html: tr(id) }} /></li>
+    ))}</ol>
+  );
 }
 
 function Setup(p: {

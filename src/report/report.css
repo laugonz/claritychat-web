@@ -397,3 +397,29 @@
 .rp-savelink .rp-copylink{margin:0}
 .rp-short-note{margin:0;font-size:13px;color:#ffd9c2;background:#4a2a17;border-radius:10px;padding:8px 10px}
 .rp-safety p{margin:0 0 6px}.rp-safety p:last-child{margin:0;font-size:13.5px}
+
+/* ---- drawn export steps (mini phones) ---- */
+.ms-steps{list-style:none;margin:0;padding:0!important;display:flex;flex-direction:column;gap:12px!important}
+.ms-steps li{display:flex;gap:14px;align-items:center}
+.ms-steps p{margin:0;font-size:14.5px;line-height:1.4}
+.ms-phone{position:relative;flex:none;width:96px;height:150px;border-radius:18px;background:#0b1b2c;border:3px solid #02070d;box-shadow:0 8px 20px rgba(0,0,0,.35);overflow:hidden;padding:20px 7px 7px;display:flex;flex-direction:column;gap:5px}
+.ms-phone::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:28px;height:7px;border-radius:4px;background:#02070d}
+.ms-n{position:absolute;z-index:3;top:-1px;left:-1px;width:22px;height:22px;border-radius:0 0 10px 0;background:var(--rp-orange);color:#26120a;font-weight:800;font-size:12px;display:grid;place-items:center}
+.ms-head{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:#e8eef5;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.ms-back{width:5px;height:5px;border-left:1.5px solid #9fb3c8;border-bottom:1.5px solid #9fb3c8;transform:rotate(45deg)}
+.ms-av{width:12px;height:12px;border-radius:50%;background:#42c5ca}
+.ms-head span{flex:1}
+.ms-dots{font-size:12px;padding:0 3px}
+.ms-b{height:13px;border-radius:6px;width:70%}.ms-b.them{background:#1d3a57;align-self:flex-start}.ms-b.me{background:#1d6b5c;align-self:flex-end}.ms-b.s{width:45%}
+.ms-list,.ms-menu,.ms-sheet,.ms-dialog{display:flex;flex-direction:column;gap:3px;background:#162c45;border-radius:7px;padding:4px}
+.ms-list i,.ms-menu i,.ms-sheet > i,.ms-dialog i{display:block;height:8px;border-radius:3px;background:rgba(255,255,255,.1)}
+.ms-menu{align-self:flex-end;width:80%}
+.ms-sheet.up{margin-top:auto}
+.ms-dialog{margin-top:auto;margin-bottom:auto}
+.ms-icons{display:flex;gap:4px;justify-content:space-between;padding:2px}
+.ms-icons i{width:14px;height:14px;border-radius:4px;background:rgba(255,255,255,.14)}
+.ms-row{font-size:8.5px;font-weight:700;color:#e8eef5;padding:4px 5px;border-radius:5px;line-height:1.15}
+.ms-tap{position:relative;outline:2px solid var(--rp-orange);outline-offset:1px;border-radius:5px;animation:ms-pulse 1.6s ease-in-out infinite}
+.ms-icons i.ms-tap{background:#3b82f6}
+@keyframes ms-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,139,69,.55)}50%{box-shadow:0 0 0 5px rgba(255,139,69,0)}}
+@media (prefers-reduced-motion: reduce){.ms-tap{animation:none}}
