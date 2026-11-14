@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { unzipSync } from "fflate";
-import { buildViz, computeStats, countTerms, parseChat, sampleChat, statsForPrompt, type ParsedChat, type Stats, type Viz } from "../report/chat";
+import { buildViz, computeStats, countTerms, parseChat, safeName, sampleChat, statsForPrompt, type ParsedChat, type Stats, type Viz } from "../report/chat";
 import { ReportView, type Report } from "../report/ReportView";
 import { Clara } from "../report/Mascot";
 import { StoryVisual } from "../report/StoryVisual";
@@ -108,9 +108,9 @@ export default function ReportPage({ locale }: { locale?: string } = {}) {
       const r = await fetch(`${API}/chat/report`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userName: me, relation: relLabel(relation), question, context, language: lang,
+          userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang,
           historyNote: stats.historyMayBeIncomplete ? tr("historyNote", { d: fmt(stats.first) }) : "",
-          stats: JSON.stringify(statsForPrompt(stats)), transcript: sample.transcript, viz: JSON.stringify(v),
+          stats: JSON.stringify(statsForPrompt(stats, chat.participants)), transcript: sample.transcript, viz: JSON.stringify(v),
         }),
       });
       if (!r.ok) throw new Error(String(r.status));
@@ -398,10 +398,18 @@ function Setup(p: {
       </>}
       {q >= 3 && <>
         {p.context && <div className="rp-reply">{p.context}</div>}
-        <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask">{tr("askConsent")}</div></div>
-        <div className="rp-opts">
-          <button aria-pressed={p.consent} onClick={() => p.setConsent(true)}><span>✅</span>{tr("yesGo")}</button>
-          <button aria-pressed={!p.consent && q > 3} onClick={() => { p.setConsent(false); p.onDone(); }}><span>🙅</span>{tr("statsOnly")}</button>
+        <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
+          <strong>{tr("consentTitle")}</strong>
+          <ul>
+            <li><Icon name="send" /><span>{tr("consentSend")}</span></li>
+            <li><Icon name="lock" /><span>{tr("consentPrivate")}</span></li>
+            <li><Icon name="tag" /><span>{tr("consentPrice")}</span></li>
+          </ul>
+          <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a>
+        </div></div>
+        <div className="rp-opts rp-opts-text">
+          <button aria-pressed={p.consent} onClick={() => p.setConsent(true)}><Icon name="check" />{tr("consentYes")}</button>
+          <button aria-pressed={!p.consent && q > 3} onClick={() => { p.setConsent(false); p.onDone(); }}><Icon name="chart" />{tr("statsOnly")}</button>
         </div>
         {p.consent && <>
           <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask">{tr("askGreat")}</div></div>
@@ -475,4 +483,16 @@ function DemoPhone() {
       </div>
     </div>
   );
+}
+
+/** Simple line icons (no emoji) for the consent step. */
+function Icon({ name }: { name: "send" | "lock" | "tag" | "check" | "chart" }) {
+  const d: Record<string, string> = {
+    send: "M4 12l16-8-6 16-2.5-6.5L4 12z M11.5 13.5L20 4",
+    lock: "M6 11h12v9H6z M8.5 11V8a3.5 3.5 0 0 1 7 0v3",
+    tag: "M3 12V4h8l10 10-8 8L3 12z M7.5 8.5h.01",
+    check: "M5 12.5l4.5 4.5L19 7.5",
+    chart: "M5 20V10 M12 20V4 M19 20v-7",
+  };
+  return <svg className="rp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d[name]} /></svg>;
 }

@@ -215,6 +215,14 @@ export function computeStats(chat: ParsedChat): Stats {
 
 // ---------- sample for the AI ----------
 
+const PHONE_NAME = /^\+?\d[\d\s().-]{6,}$/;
+/** Contacts saved only as a phone number are renamed "Contacto N" before anything goes to the AI. */
+export function safeName(name: string, participants: string[]): string {
+  if (!PHONE_NAME.test(name.trim())) return name;
+  const phones = participants.filter(p => PHONE_NAME.test(p.trim()));
+  return `Contacto ${phones.indexOf(name) + 1}`;
+}
+
 const pad = (n: number) => String(n).padStart(2, "0");
 const stamp = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
@@ -246,27 +254,31 @@ export function sampleChat(chat: ParsedChat, stats: Stats, budget = 2200): { tra
       for (let i = 0; i < all.length && picked.size < budget; i += step) add(i, i + 8);
     }
   }
+  // Never send phone numbers or emails to the AI: mask them in text and in author names.
+  const PHONE = /\+?\d[\d\s().-]{7,}\d/g, EMAIL = /[\w.+-]+@[\w-]+\.[\w.]+/g;
+  const mask = (t: string) => t.replace(EMAIL, "[email]").replace(PHONE, "[teléfono]");
+  const who = (a: string) => safeName(a, chat.participants);
   const out: string[] = []; let gap = 0;
   all.forEach((m, i) => {
     if (!picked.has(i)) { gap++; return; }
     if (gap) { out.push(`[… ${gap} omitted …]`); gap = 0; }
-    const body = m.kind === "media" ? "<media>" : m.kind === "deleted" ? "<deleted>" : m.text.replace(/\n/g, " / ");
-    out.push(`[${stamp(m.date)}] ${m.author}: ${body}`);
+    const body = m.kind === "media" ? "<media>" : m.kind === "deleted" ? "<deleted>" : mask(m.text.replace(/\n/g, " / "));
+    out.push(`[${stamp(m.date)}] ${who(m.author)}: ${body}`);
   });
   if (gap) out.push(`[… ${gap} omitted …]`);
   return { transcript: out.join("\n"), covered: picked.size / all.length };
 }
 
-export function statsForPrompt(s: Stats) {
+export function statsForPrompt(s: Stats, participants: string[] = s.people.map(p => p.name)) {
   const f = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
   return {
     total_messages: s.total, from: f(s.first), to: f(s.last), days: s.spanDays, conversations: s.conversations,
     busiest_day: { date: f(s.busiestDay.date), messages: s.busiestDay.messages }, longest_streak_days: s.longestStreak,
     pct_messages_22h_6h: Math.round(s.afterTenShare * 100), peak_hour: s.peakHour, whatsapp_calls_logged: s.calls,
     history_may_be_incomplete: s.historyMayBeIncomplete,
-    longest_silences: s.silences.map(x => ({ from: f(x.from), days: x.days, broken_by: x.brokenBy })),
+    longest_silences: s.silences.map(x => ({ from: f(x.from), days: x.days, broken_by: safeName(x.brokenBy, participants) })),
     people: s.people.map(p => ({
-      name: p.name, messages: p.messages, pct: Math.round(p.share * 100), words_per_message: Math.round(p.wordsPerMessage * 10) / 10,
+      name: safeName(p.name, participants), messages: p.messages, pct: Math.round(p.share * 100), words_per_message: Math.round(p.wordsPerMessage * 10) / 10,
       starts_conversations: p.started, ends_conversations: p.closed,
       median_reply_min: p.medianReplyMin == null ? null : Math.round(p.medianReplyMin * 10) / 10,
       emojis: p.topEmojis.map(e => e[0]), own_words: p.topWords.map(w => w[0]), laugh_messages: p.laughs, media: p.media, love_you: p.loveYou,

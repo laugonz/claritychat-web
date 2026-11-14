@@ -307,3 +307,11 @@
 @media (min-width:900px){.rp-at-setup{background:var(--rp-navy)}.rp-at-setup .rp-convo{max-width:620px;width:100%;margin:0 auto;padding-top:56px}}
 @media (prefers-reduced-motion:reduce){.rp *{animation:none!important;transition:none!important}}
 .rp-waiver{font-size:11.5px;text-align:center;line-height:1.4}
+/* consent card: clear, icon list, no emoji */
+.rp-consent-card{display:flex;flex-direction:column;gap:10px;max-width:none}
+.rp-consent-card ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rp-consent-card li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;font-size:15px;line-height:1.45}
+.rp-consent-card .rp-icon{color:var(--rp-teal);margin-top:1px}
+.rp-consent-card a{color:var(--rp-teal);font-size:13px;font-weight:700;text-decoration:none;align-self:flex-start}
+.rp-opts-text button .rp-icon{flex:none;color:var(--rp-teal);margin-right:6px}
+.rp-opts-text button{gap:4px}
