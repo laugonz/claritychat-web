@@ -12,11 +12,13 @@ export type Chapter = {
   id: string; emoji?: string; title: string; body?: string; locked?: boolean; message_suggestion?: string | null;
   moments?: { date: string; label: string }[];
   key_exchange?: { date: string; time?: string; author: string; text: string }[];
+  opening_exchange?: { date: string; time?: string; author: string; text: string }[];
+  teaser?: string;
   shines?: string[]; watch?: string[];
   dictionary?: { term: string; meaning: string; who: string }[];
   topic_timeline?: { topic: string; steps: { date: string; author: string; text: string; note?: string | null }[] } | null;
 };
-export type Report = { title: string; verdict: string; hook?: string; chapters: Chapter[]; follow_ups?: { title: string; teaser?: string }[]; safety?: { concern: boolean; note?: string | null } };
+export type Report = { title: string; verdict: string; hook?: string; answer_chapter?: string | null; chapters: Chapter[]; follow_ups?: { title: string; teaser?: string }[]; safety?: { concern: boolean; note?: string | null } };
 
 const first = (n: string) => n.split(" ")[0];
 const esc = (x: string) => x.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
@@ -278,17 +280,18 @@ function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNo
       {head}
       <div className="rp-prose">
         {ps[0] && <p><Rich text={ps[0]} /></p>}
-        <Exchange msgs={(c.key_exchange ?? []).slice(0, 3)} me={viz?.me ?? ""} />
+        <Exchange msgs={(c.opening_exchange?.length ? c.opening_exchange : c.key_exchange ?? []).slice(0, 3)} me={viz?.me ?? ""} />
         {ps.slice(1, 2).map((p, k) => <p key={k}><Rich text={p} /></p>)}
       </div>
     </article>
   );
 }
 
-export function ReportView({ report, viz, counts, onPay, paying, payError, example }: {
+export function ReportView({ report, viz, counts, onPay, paying, payError, example, question, relation }: {
   report: Report; viz: Viz | null; counts?: Record<string, Record<string, number>>;
-  onPay: () => void; paying: boolean; payError?: string; example?: boolean;
+  onPay: () => void; paying: boolean; payError?: string; example?: boolean; question?: string; relation?: string;
 }) {
+  const ansIdx = report.answer_chapter ? report.chapters.findIndex(c => c.id === report.answer_chapter) : -1;
   const locked = report.chapters.some(c => c.locked);
   const lockIcon = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
   const chapterHead = (c: Chapter, i: number) => <h2><span className="rp-n">{String(i + 1).padStart(2, "0")}</span><span>{c.emoji} {c.title}</span></h2>;
@@ -306,7 +309,8 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
           <div className="rp-paywall">
             {report.hook && <p className="rp-hook"><Rich text={report.hook} /></p>}
             <h3>{tr("r_keepReading")}</h3>
-            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i > 0 && WHY[c.id] ? <small>{tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
+            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i > 0 && (c.teaser || WHY[c.id]) ? <small>{c.teaser ?? tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
+            {question && ansIdx > 0 && <p className="rp-answer-in">{tr("r_answerIn", { q: question.split(" · ")[0], n: ansIdx + 1 })}</p>}
             <div className="rp-price"><strong>{tr("r_price")}</strong></div>
             <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button>
             <p className="rp-hint rp-waiver">{tr("r_waiver")}</p>
@@ -322,7 +326,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
             <article key={i} className="rp-chapter">
               {chapterHead(c, i)}
               <Body c={c} i={i} viz={viz} counts={counts} />
-              {c.message_suggestion && !report.safety?.concern && <div className="rp-suggest"><span>{tr("r_suggest")}</span><div className="rp-m me">{c.message_suggestion}</div>
+              {c.message_suggestion && !report.safety?.concern && <div className="rp-suggest"><span>{tr(relation === "ex" ? "r_suggestEx" : "r_suggest")}</span><div className="rp-m me">{c.message_suggestion}</div>
                 <button onClick={() => navigator.clipboard?.writeText(c.message_suggestion ?? "").catch(() => {})}>{tr("r_copy")}</button></div>}
             </article>
           ))}

@@ -365,7 +365,7 @@ export function countTerms(chat: ParsedChat, terms: string[]): Record<string, Re
 const norm = (t: string) => t.toLowerCase().normalize("NFKC").replace(/[\s\u200e\u200f]+/g, " ").replace(/[“”«»"']/g, "").trim();
 
 /** Drops chat bubbles (key_exchange, topic_timeline) that don't exist in the real chat. The AI must only copy real messages. */
-export function verifyQuotes<R extends { chapters: { key_exchange?: { text: string }[]; topic_timeline?: { steps: { text: string }[] } | null }[] }>(report: R, chat: ParsedChat): { report: R; dropped: number } {
+export function verifyQuotes<R extends { chapters: { key_exchange?: { text: string }[]; opening_exchange?: { text: string }[]; topic_timeline?: { steps: { text: string }[] } | null }[] }>(report: R, chat: ParsedChat): { report: R; dropped: number } {
   const bodies = chat.messages.filter(m => m.kind === "text").map(m => norm(m.text));
   const exists = (t: string) => { const n = norm(t); return n.length > 0 && bodies.some(b => b === n || (n.length >= 12 && b.includes(n))); };
   let dropped = 0;
@@ -373,6 +373,7 @@ export function verifyQuotes<R extends { chapters: { key_exchange?: { text: stri
   const chapters = report.chapters.map(c => ({
     ...c,
     ...(c.key_exchange ? { key_exchange: keep(c.key_exchange) } : {}),
+    ...(c.opening_exchange ? { opening_exchange: keep(c.opening_exchange) } : {}),
     ...(c.topic_timeline?.steps ? { topic_timeline: { ...c.topic_timeline, steps: keep(c.topic_timeline.steps) } } : {}),
   }));
   return { report: { ...report, chapters }, dropped };
