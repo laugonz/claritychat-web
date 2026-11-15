@@ -8,16 +8,21 @@ export type Kind = "text" | "media" | "call" | "deleted";
 export type Message = { date: Date; author: string; text: string; kind: Kind };
 export type ParsedChat = { messages: Message[]; participants: string[]; startsWithEncryptionNotice: boolean };
 
-const IOS = /^\[(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4}),?\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([AaPp]\.?\s?[Mm]\.?)?\]\s(.*)$/;
-const ANDROID = /^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4}),?\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([AaPp]\.?\s?[Mm]\.?)?\s[-–]\s(.*)$/;
+const IOS = /^\[(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4}),?\s+(?:à\s+|um\s+|alle\s+|o\s+)?(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([AaPp]\.?\s?[Mm]\.?)?\]\s(.*)$/;
+const ANDROID = /^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4}),?\s+(?:à\s+|um\s+|alle\s+|o\s+)?(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?\s*([AaPp]\.?\s?[Mm]\.?)?\s[-–]\s(.*)$/;
 
-type Header = { d1: number; d2: number; y: number; h: number; m: number; s: number; ampm?: string; author?: string; body: string };
+type Header = { d1: number; d2: number; y: number; h: number; m: number; s: number; ampm?: string; author?: string; body: string; ymd?: boolean };
+
+// Year-first exports (en-CA, sv, lt…: "2026-11-15, 6:38 a.m.") → rewritten as day/month/year.
+const YMD = /^(\[?)(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})(?=,|\s)/;
 
 function clean(raw: string): string {
   return raw.replace(/\r\n?/g, "\n").replace(/[‎‏‪‬﻿]/g, "").replace(/[  ]/g, " ");
 }
 
-function matchHeader(line: string): Header | null {
+function matchHeader(raw: string): Header | null {
+  const ymd = YMD.test(raw);
+  const line = ymd ? raw.replace(YMD, "$1$4/$3/$2") : raw;
   const m = IOS.exec(line) ?? ANDROID.exec(line);
   if (!m) return null;
   const rest = m[8] ?? "";
@@ -25,7 +30,7 @@ function matchHeader(line: string): Header | null {
   let body = rest;
   const sep = rest.indexOf(": ");
   if (sep > 0 && sep <= 60) { author = rest.slice(0, sep).trim(); body = rest.slice(sep + 2); }
-  return { d1: +m[1], d2: +m[2], y: +m[3], h: +m[4], m: +m[5], s: m[6] ? +m[6] : 0, ampm: m[7], author, body };
+  return { d1: +m[1], d2: +m[2], y: +m[3], h: +m[4], m: +m[5], s: m[6] ? +m[6] : 0, ampm: m[7], author, body, ymd };
 }
 
 function inferDayFirst(pairs: [number, number][]): boolean {
@@ -60,7 +65,7 @@ export function parseChat(raw: string): ParsedChat {
     if (h) headers.push(h);
     else if (headers.length) { const k = headers.length - 1; (cont.get(k) ?? cont.set(k, []).get(k)!).push(line); }
   }
-  const dayFirst = inferDayFirst(headers.map(h => [h.d1, h.d2]));
+  const dayFirst = headers.some(h => h.ymd) || inferDayFirst(headers.map(h => [h.d1, h.d2]));
   const messages: Message[] = [];
   let notice = false;
   headers.forEach((h, i) => {

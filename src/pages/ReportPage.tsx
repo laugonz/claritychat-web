@@ -217,6 +217,7 @@ function ReportFlow() {
     setError(""); setBusy(true);
     try {
       const parsed = parseChat(await readExport(file));
+      if (parsed.participants.length === 0) throw new Error("format");
       if (parsed.participants.length < 2) throw new Error("solo");
       if (parsed.messages.length < 20) throw new Error("short");
       // Group chats: 3+ people who each write at least 5 % → the 1:1 report would be wrong.
@@ -554,7 +555,10 @@ function Setup(p: {
             <li><Icon name="lock" /><span>{tr("consentPrivate")}</span></li>
             <li><Icon name="tag" /><span>{tr("consentPrice")}</span></li>
           </ul>
-          <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a>
+          <details className="rp-how" onToggle={e => { if ((e.target as HTMLDetailsElement).open) track("faq_open", { from: "consent_ai" }); }}>
+            <summary>{tr("consentHow")}</summary>
+            <p>{tr("consentHowBody")} <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a></p>
+          </details>
         </div></div>
         <div className="rp-consent-actions">
           <button className="rp-btn rp-main" onClick={() => decide(true)}><Icon name="check" />{tr("consentYes")}</button>
