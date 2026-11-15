@@ -229,7 +229,7 @@ function ReportFlow() {
   }, []);
 
   async function onFile(file?: File) {
-    if (!file) return;
+    if (!file) { at("landing"); return; }
     setError(""); setBusy(true);
     let fmtShape = "";
     try {
@@ -271,7 +271,7 @@ function ReportFlow() {
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
-              <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
+              <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
