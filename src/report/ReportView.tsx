@@ -280,8 +280,10 @@ function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNo
       {head}
       <div className="rp-prose">
         {ps[0] && <p><Rich text={ps[0]} /></p>}
-        <Exchange msgs={(c.opening_exchange?.length ? c.opening_exchange : c.key_exchange ?? []).slice(0, 3)} me={viz?.me ?? ""} />
+        {/* Messages from just before the key moment go last (chronological, right before the cut); old reports keep the key exchange in the middle. */}
+        {!c.opening_exchange?.length && <Exchange msgs={(c.key_exchange ?? []).slice(0, 3)} me={viz?.me ?? ""} />}
         {ps.slice(1, 2).map((p, k) => <p key={k}><Rich text={p} /></p>)}
+        {!!c.opening_exchange?.length && <Exchange msgs={c.opening_exchange.slice(0, 3)} me={viz?.me ?? ""} />}
       </div>
     </article>
   );
