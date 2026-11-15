@@ -85,6 +85,7 @@ function ReportFlow() {
   const [context, setContext] = useState("");
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
+  const [demo, setDemo] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   // A report from an earlier visit on this device (id only; reports live 30 days).
   const [last, setLast] = useState<{ id: string; ts: number } | null>(null);
@@ -228,6 +229,22 @@ function ReportFlow() {
     else if (!/iPhone|iPad|Mobile/i.test(navigator.userAgent) && matchMedia("(min-width: 900px)").matches) setOs("desktop");
   }, []);
 
+  /** "Try it with an example chat": made-up chat (es / it; other languages get the Spanish one with their example's names). */
+  async function startDemo() {
+    track("sample_open", { from: "demo_start" }); setBusy(true); setError("");
+    try {
+      const L = pageLang();
+      const raw = await (await fetch(`/assets/demo/chat-${L === "it" ? "it" : "es"}.txt`)).text();
+      const names = ({ en: ["Emma", "Jake"], fr: ["Camille", "Hugo"], de: ["Lena", "Jonas"], pl: ["Zosia", "Kuba"] } as Record<string, string[]>)[L];
+      const txt = names ? raw.split("] Marta:").join(`] ${names[0]}:`).split("] Iván:").join(`] ${names[1]}:`) : raw;
+      const parsed = parseChat(txt);
+      setChat(parsed); setStats(computeStats(parsed)); setMe(L === "it" ? "Giulia" : names ? names[0] : "Marta");
+      setDemo(true); setConsent(false); setStep("stories"); at("demo_stories");
+    } catch { setError(tr("errRead")); }
+    setBusy(false);
+  }
+  function endDemo() { setDemo(false); setChat(null); setStats(null); setMe(""); setStep("landing"); track("sample_open", { from: "demo_mine" }); }
+
   async function onFile(file?: File) {
     if (!file) { at("landing"); return; }
     setError(""); setBusy(true);
@@ -248,7 +265,7 @@ function ReportFlow() {
       const reason = String((e as Error).message);
       track("upload_error", { reason: ["no-chat", "solo", "short", "group"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
       at("upload_error");
-      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : tr("errRead"));
+      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : reason === "format" ? tr("errFormat") : tr("errRead"));
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   }
 
@@ -270,9 +287,11 @@ function ReportFlow() {
               <div className="rp-hello"><Clara size={64} /><span>{tr("hello1")}<br />{tr("hello2")}</span></div>
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
+              {new Date() < new Date(2027, 0, 1) && <p className="rp-wrapped-line">{tr("wrappedLine")}</p>}
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
               <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
+              <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>✨ {tr("demoBtn")}</button>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
               <div className="rp-how">
@@ -311,7 +330,7 @@ function ReportFlow() {
             onDone={(given: boolean) => { setConsent(given); startReport(given); setStep("stories"); }} />
         )}
 
-        {step === "stories" && (stats || viz?.stories) && <Stories stories={stats ? buildStories(stats, me) : (viz!.stories as Story[])} lines={consent && stats && !report ? waitingLines(stats, me) : []} ready={!!report} onDone={() => setStep("report")} />}
+        {step === "stories" && (stats || viz?.stories) && <Stories note={demo ? tr("demoBanner") : undefined} endLabel={demo || (!consent && !reportId) ? tr("seeAllNumbers") : undefined} stories={stats ? buildStories(stats, me, demo || (!consent && !reportId)) : (viz!.stories as Story[])} lines={consent && stats && !report ? waitingLines(stats, me) : []} ready={!!report} onDone={() => setStep("report")} />}
 
         {step === "report" && (
           <section className="rp-screen rp-pad rp-letter">
@@ -319,11 +338,25 @@ function ReportFlow() {
             {shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} />
               : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
                   {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
+              : demo && stats ? <>
+                  <p className="rp-demo-banner">{tr("demoBanner")}</p>
+                  <div className="rp-pitch"><Clara size={44} mood="soft" /><div>
+                    <p>{tr("demoEnd")}</p>
+                    <a className="rp-btn rp-teal" href={exampleHref()} onClick={() => track("sample_open", { from: "demo_end" })}>{tr("demoSeeReport")}</a>
+                    <button className="rp-btn rp-main" onClick={endDemo}>{tr("demoMine")}</button>
+                  </div></div>
+                  <Numbers viz={{ ...buildViz(stats, me), stories: buildStories(stats, me, true) }} />
+                  <button className="rp-btn rp-main" onClick={endDemo}>{tr("demoMine")}</button></>
               : !reportId && !consent ? <>
-                  {stats && <Numbers viz={{ ...buildViz(stats, me), stories: buildStories(stats, me) }} />}
+                  {stats && <div className="rp-pitch rp-pitch-top"><Clara size={36} mood="soft" /><div>
+                    <p>{tr("topPitch")}</p>
+                    <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late_top" }); setConsent(true); startReport(true); }}>{tr("topPitchBtn")}</button>
+                  </div></div>}
+                  {stats && <Numbers viz={{ ...buildViz(stats, me), stories: buildStories(stats, me, true) }} />}
                   <div className="rp-pitch"><Clara size={44} mood="soft" /><div>
                     <p>{tr("noConsentPitch", { T: otherName })}</p>
                     <p className="rp-hint">{tr("consentSend")} {tr("consentPrivate")}</p>
+                    <details className="rp-how"><summary>{tr("consentHow")}</summary><p>{tr("consentHowBody")} <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a></p></details>
                     {stats && <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late" }); setConsent(true); startReport(true); }}>{tr("consentYes")}</button>}
                   </div></div></>
               : <><WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} />{viz && <Numbers viz={viz} />}</>}
@@ -387,7 +420,7 @@ function confetti(c: HTMLCanvasElement | null) {
   tick();
 }
 
-function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: string[]; ready: boolean; onDone: () => void }) {
+function Stories({ stories, lines, ready, onDone, note, endLabel }: { stories: Story[]; lines: string[]; ready: boolean; onDone: () => void; note?: string; endLabel?: string }) {
   const line = useRotating(lines, 3200);
   const [i, setI] = useState(0);
   const finish = () => { track("stories_done", { count: Math.min(i + 1, stories.length) }); onDone(); };
@@ -414,6 +447,7 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
   return (
     <section className="rp-screen rp-story" onPointerDown={() => setPaused(true)} onPointerUp={() => setPaused(false)} onPointerCancel={() => setPaused(false)}>
       <div className="rp-bars">{stories.map((_, k) => <i key={k}><b className={k < i ? "done" : k === i ? (paused || sharing ? "hold" : "on") : ""} key={`${k}-${i}`} /></i>)}</div>
+      {note && <div className="rp-writing rp-demo-note">{note}</div>}
       {lines.length > 0 && <div className="rp-writing">{ready ? <>{tr("reportReady")}</> : <><span className="rp-dot" /><span key={line}>{line}</span></>}</div>}
       <div className="rp-slide" key={i}>
         <div className="rp-kicker">{s.kicker}</div>
@@ -429,7 +463,7 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
       <button className="rp-arrow rp-arrow-r" aria-label={tr("nextStory")} onClick={() => (i < stories.length - 1 ? setI(i + 1) : finish())}>›</button>
       <div className="rp-story-foot">
         <button className="rp-btn rp-ghost" onClick={() => setSharing(true)}>{tr("share")}</button>
-        <button className="rp-btn rp-teal" onClick={finish}>{tr("toReport")}</button>
+        <button className="rp-btn rp-teal" onClick={finish}>{endLabel ?? tr("toReport")}</button>
       </div>
       {sharing && (
         <div className="rp-sheet" onClick={() => setSharing(false)}>
@@ -457,6 +491,8 @@ function Stories({ stories, lines, ready, onDone }: { stories: Story[]; lines: s
 
 const WORRIES_LOVE = ["w_pull", "w_interest", "w_cold", "w_what", "w_fix", "w_curious"];
 const WORRIES: Record<string, string[]> = {
+  ex: ["w_ex_why", "w_ex_first", "w_ex_fault", "w_ex_love", "w_ex_back", "w_ex_move"],
+  almost: ["w_al_like", "w_al_why", "w_al_back", "w_al_try", "w_curious"],
   friend: ["w_care", "w_apart", "w_pull", "w_what", "w_fix", "w_curious"],
   family: ["w_listen", "w_argue", "w_pull", "w_what", "w_fix", "w_curious"],
   work: ["w_respect", "w_healthy", "w_hard", "w_what", "w_limits", "w_curious"],
@@ -502,11 +538,15 @@ function Setup(p: {
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
   // A random example report each time (written examples, not AI, not the user's chat).
-  const [preview] = useState(() => { let n = 1; try { n = Number(sessionStorage.getItem("rp-ex")) || (Math.random() < 0.5 ? 1 : 3); sessionStorage.setItem("rp-ex", String(n)); } catch { /* private mode */ } return n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` }; });
+  const [pick] = useState(() => { let n = 1; try { n = Number(sessionStorage.getItem("rp-ex")) || (Math.random() < 0.5 ? 1 : 3); sessionStorage.setItem("rp-ex", String(n)); } catch { /* private mode */ } return n; });
+  // An ex / almost-something sees the "three silences" example (it fits a breakup); others keep the A/B pick.
+  const n = p.relation === "ex" || p.relation === "almost" ? 3 : pick;
+  const preview = n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` };
   useEffect(() => { if (q === 3) track("consent_view", { ex: `ex${preview.n}` }); at(["setup_relation", "setup_worry", "setup_outside", "consent"][q] ?? "setup"); }, [q]);
   const decide = (yes: boolean) => { track("consent", { value: yes ? "yes" : "no", step: `ex${preview.n}` }); p.onDone(yes); };
   const end = useRef<HTMLDivElement>(null);
-  useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
+  const askRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { setTyping(false); (q === 3 ? askRef.current : end.current)?.scrollIntoView({ behavior: "smooth", block: q === 3 ? "start" : "end" }); }, [q]);
   const toggle = (cur: string, v: string, set: (x: string) => void) => {
     const parts = cur ? cur.split(" · ") : [];
     set(parts.includes(v) ? parts.filter(x => x !== v).join(" · ") : [...parts, v].join(" · "));
@@ -551,6 +591,7 @@ function Setup(p: {
       </>}
 
       {q >= 3 && <>
+        <div ref={askRef} className="rp-anchor" />
         <Ask>{tr("askReport")}</Ask>
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
           <div className="rp-preview" aria-hidden="true">
@@ -582,6 +623,7 @@ function Setup(p: {
         </div></div>
         <div className="rp-consent-actions">
           <button className="rp-btn rp-main" onClick={() => decide(true)}><Icon name="check" />{tr("consentYes")}</button>
+          <p className="rp-yes-hint">{tr("consentYesHint")}</p>
           <button className="rp-linkbtn" onClick={() => decide(false)}>{tr("statsOnly")}</button>
         </div>
       </>}

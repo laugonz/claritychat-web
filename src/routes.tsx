@@ -30,7 +30,7 @@ export type Route = {
 
 function createRoutes(locale: Locale): Route[] {
   const t = (text: string) => translate(locale, text);
-  const { guides, screenshots } = contentFor(locale);
+  const { guides } = contentFor(locale);
   const route = (path: string, meta: Omit<PageMeta, "canonical">, element: ReactElement): Route => ({
     path: localizedPath(locale, path),
     basePath: path,
@@ -51,9 +51,9 @@ function createRoutes(locale: Locale): Route[] {
 
   return [
     route("/", {
-      title: t("Clarity Chat | AI Text Message Analyzer"),
-      description: t(SITE.description),
-      image: `${SITE.url}${screenshots[0].src}`,
+      title: t("Free WhatsApp Wrapped & AI chat analyzer | Clarity Chat"),
+      description: t("Upload your exported chat (.zip or .txt). The stats are free and ready in 30 seconds. If you like, Clara writes you a report on what is really going on (€5.99, one-time)."),
+      image: `${SITE.url}/assets/og/og-report-${locale}.jpg`,
       jsonLd: homeJsonLd(locale),
       sitemapPriority: "1.0",
     }, <Home />),

@@ -41,7 +41,7 @@ function inferDayFirst(pairs: [number, number][]): boolean {
   return c1 >= c2;
 }
 
-const NOTICE = ["cifrados de extremo a extremo", "end-to-end encrypted", "chiffrés de bout en bout", "ende-zu-ende-verschlüsselt", "crittografia end-to-end", "criptografia de ponta a ponta", "szyfrowane metodą end-to-end", "szyfrowane end-to-end"];
+const NOTICE = ["cifrados de extremo a extremo", "end-to-end encrypted", "chiffrés de bout en bout", "ende-zu-ende-verschlüsselt", "crittografia end-to-end", "crittografati end-to-end", "criptografia de ponta a ponta", "szyfrowane metodą end-to-end", "szyfrowane end-to-end"];
 const isNotice = (s: string) => { const l = s.toLowerCase(); return NOTICE.some(n => l.includes(n)); };
 
 const MEDIA = ["imagen omitida", "audio omitido", "video omitido", "vídeo omitido", "sticker omitido", "gif omitido", "documento omitido", "<multimedia omitido>", "<media omitted>", "image omitted", "audio omitted", "video omitted", "sticker omitted", "gif omitted", "document omitted", "<médias omis>", "<medien ausgeschlossen>", "image absente", "immagine omessa", "audio omesso", "<media omessi>", "pominięto multimedia", "obraz pominięty"];

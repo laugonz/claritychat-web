@@ -1550,3 +1550,16 @@ h1, h2, h3 { overflow-wrap: anywhere; }
 .hero-wrapped-note{margin:10px 0 0;font-size:14px;color:#b9c8d8}
 .hero-wrapped-note a{color:#42c5ca;font-weight:700;text-decoration:none;white-space:nowrap}
 .hero-wrapped-note a:hover{text-decoration:underline}
+
+/* Home refocus: report CTAs + compact header link on mobile */
+.final-cta-actions{flex:0 0 auto}
+.final-cta .final-cta-actions .store-button{color:var(--navy);background:var(--teal)}
+.faq-intro .hero-actions .wrapped-cta,.final-cta-actions .wrapped-cta{display:inline-flex;align-items:center;min-height:52px}
+.header-report-link{display:none;flex:0 0 auto;align-items:center;min-height:40px;padding:8px 12px;border-radius:12px;background:#ff8b45;color:#26120a;font-size:.86rem;font-weight:800;line-height:1;white-space:nowrap;text-decoration:none}
+.header-report-link:hover{background:#ff9a5c}
+@media (max-width:1200px){.header-report-link{display:inline-flex}}
+@media (max-width:480px){
+  .site-header .brand span{display:none}
+  .header-report-link{padding:8px 10px;font-size:.8rem}
+}
+@media (max-width:760px){.faq-intro .hero-actions .wrapped-cta,.final-cta-actions .wrapped-cta{flex:1 1 100%;justify-content:center}}

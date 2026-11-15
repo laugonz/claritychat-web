@@ -45,8 +45,8 @@ export default function Home() {
           <div className="shell hero-grid">
             <div className="hero-copy">
               <span className="eyebrow">{t("New · WhatsApp Wrapped")}</span>
-              <h1>{t("AI text message analyzer for relationship clarity")}</h1>
-              <p className="hero-lead">{t("Upload screenshots of any chat or your whole WhatsApp and discover the tone, the emotions and response patterns, who texts more and who breaks the silences. The stats are free, in 30 seconds.")}</p>
+              <h1>{t("Analyze your WhatsApp chat: who texts more, who starts and who breaks the silences")}</h1>
+              <p className="hero-lead">{t("Upload your exported chat (.zip or .txt). The stats are free and ready in 30 seconds. If you like, Clara writes you a report on what is really going on (€5.99, one-time).")}</p>
               <div className="hero-actions">
                 <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
                 <StoreButton />
@@ -185,7 +185,10 @@ export default function Home() {
               <span className="eyebrow">{t("Questions, answered plainly")}</span>
               <h2>{t("What a chat analysis can and cannot do")}</h2>
               <p>{t("Clarity Chat organizes visible communication. You keep the context, judgment and final decision.")}</p>
-              <StoreButton />
+              <div className="hero-actions">
+                <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
+                <StoreButton />
+              </div>
             </div>
             <div className="faq-list">
               {homeFaqs.map((faq) => <FaqItem key={faq.question} faq={faq} />)}
@@ -200,7 +203,10 @@ export default function Home() {
               <h2>{t("Stop rereading the same line in a loop.")}</h2>
               <p>{t("Choose the exchange, inspect the pattern and decide what deserves a real conversation.")}</p>
             </div>
-            <StoreButton />
+            <div className="hero-actions final-cta-actions">
+              <a className="wrapped-cta" href={path("/report/")}>{t("See my chat in numbers")} →</a>
+              <StoreButton />
+            </div>
           </div>
         </section>
       </main>

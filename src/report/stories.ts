@@ -19,7 +19,8 @@ const hour = (h: number) => new Date(2000, 0, 1, h).toLocaleTimeString(loc(), { 
 const esc = (x: string) => x.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 const first = (n: string) => esc(n.split(" ")[0]);
 
-export function buildStories(s: Stats, me: string): Story[] {
+/** noReport: the person said no to the AI report (or it's the demo) → don't promise "I'll tell you in the report". */
+export function buildStories(s: Stats, me: string, noReport = false): Story[] {
   const meP = s.people.find(p => p.name === me) ?? s.people[0];
   const others = s.people.filter(p => p !== meP);
   const them = others[0];
@@ -88,7 +89,7 @@ export function buildStories(s: Stats, me: string): Story[] {
       const meBreaks = mine * 2 >= sil.length;
       out.push({
         kicker: tr("s_sil_k"), title: tr("s_sil_t", { n: sil.length }),
-        body: mine === sil.length ? tr("s_sil_allMe") : mine === 0 ? tr("s_sil_allThem", { T }) : tr("s_sil_mixed", { a: mine, b: sil.length - mine, T }),
+        body: mine === sil.length ? tr("s_sil_allMe") : mine === 0 ? tr("s_sil_allThem", { T }) : tr(noReport ? "s_sil_mixed_no" : "s_sil_mixed", { a: mine, b: sil.length - mine, T }),
         card: meBreaks ? tr("s_sil_c_me", { a: mine, n: sil.length }) : tr("s_sil_c_them", { a: sil.length - mine, n: sil.length, T }),
         visual: { type: "silences", rows: sil.map(x => ({ days: x.days, from: short(x.from), who: x.brokenBy === meP.name ? tr("you") : first(x.brokenBy) })) },
       });
@@ -97,7 +98,7 @@ export function buildStories(s: Stats, me: string): Story[] {
 
   out.push({
     kicker: tr("s_rec_k"), big: nf.format(s.busiestDay.messages), title: tr("s_rec_t", { d: fmtDate(s.busiestDay.date) }),
-    body: tr("s_rec_b"),
+    body: tr(noReport ? "s_rec_b_no" : "s_rec_b"),
     card: tr("s_rec_c", { n: nf.format(s.busiestDay.messages) }),
   });
 

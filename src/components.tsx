@@ -23,6 +23,7 @@ export function Header() {
           <a href={path("/#faq")}>{t("FAQ")}</a>
         </nav>
         <LanguagePicker />
+        <a className="header-report-link" href={path("/report/")}>{t("✨ Your chat")}</a>
         <StoreButton compact />
       </div>
     </header>
