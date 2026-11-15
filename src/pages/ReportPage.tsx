@@ -291,7 +291,7 @@ function ReportFlow() {
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
               <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
-              <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>✨ {tr("demoBtn")}</button>
+              <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>{tr("demoBtn")}</button>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
               <div className="rp-how">
