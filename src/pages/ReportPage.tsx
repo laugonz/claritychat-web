@@ -26,6 +26,18 @@ function track(name: string, props: Record<string, string | number> = {}) {
   for (const [k, v] of Object.entries(props)) p[k] = String(v);
   fetch(`${API}/chat/event`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ sid: SID, name, props: p }), keepalive: true }).catch(() => {});
 }
+// Where the person is right now, so we learn where people leave (sent once per place on pagehide/tab hide).
+let WHERE = "landing";
+const T0 = typeof performance !== "undefined" ? performance.now() : 0;
+const at = (w: string) => { WHERE = w; };
+if (typeof window !== "undefined") {
+  let sent = "";
+  const leave = () => { if (sent === WHERE) return; sent = WHERE; track("page_leave", { step: WHERE, secs: Math.round((performance.now() - T0) / 1000) }); };
+  addEventListener("pagehide", leave);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") leave(); });
+}
+/** Shape of a line without content: letters → a, digits → d (e.g. "[dddd-dd-dd, d:dd a.a.] a: a"). */
+const shape = (line: string) => line.replace(/\p{L}+/gu, "a").replace(/\d/g, "d").replace(/[^\sad\[\]().,:;\/\-–]/g, "·").slice(0, 40);
 const bucket = (n: number) => n < 200 ? "<200" : n < 1000 ? "200-1k" : n < 3000 ? "1k-3k" : n < 10000 ? "3k-10k" : "10k+";
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -60,6 +72,7 @@ export default function ReportPage({ locale, example }: { locale?: string; examp
 
 function ReportFlow() {
   const [step, setStep] = useState<Step>("landing");
+  useEffect(() => { at(step); }, [step]);
   const [os, setOs] = useState<"ios" | "android" | "desktop">("ios");
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState("");
@@ -184,7 +197,9 @@ function ReportFlow() {
     if (!report || step !== "report") return;   // only when it's actually on screen (not while still in the stories)
     const kind = report.chapters.some(c => (c as { locked?: boolean }).locked) ? "paywall_view" : "report_read";
     if (seenRef.current !== kind) { seenRef.current = kind; track(kind); }
+    at(kind === "paywall_view" ? "paywall" : "report_read");
   }, [report, step]);
+  useEffect(() => { if (step === "report" && !consent && !reportId) at("no_consent_stats"); }, [step, consent, reportId]);
 
   // Count the private-dictionary terms in the WHOLE chat once the report arrives.
   useEffect(() => {
@@ -195,6 +210,7 @@ function ReportFlow() {
   }, [report, chat, reportId]);
 
   async function pay() {
+    at("stripe");
     setPaying(true); setPayError(""); track("checkout_click");
     try {
       const r = await fetch(`${API}/chat/report/${reportId}/checkout`, { method: "POST" });
@@ -215,9 +231,11 @@ function ReportFlow() {
   async function onFile(file?: File) {
     if (!file) return;
     setError(""); setBusy(true);
+    let fmtShape = "";
     try {
-      const parsed = parseChat(await readExport(file));
-      if (parsed.participants.length === 0) throw new Error("format");
+      const raw = await readExport(file);
+      const parsed = parseChat(raw);
+      if (parsed.participants.length === 0) { fmtShape = shape(raw.split(/\r?\n/).find(l => /\d/.test(l)) ?? ""); throw new Error("format"); }
       if (parsed.participants.length < 2) throw new Error("solo");
       if (parsed.messages.length < 20) throw new Error("short");
       // Group chats: 3+ people who each write at least 5 % → the 1:1 report would be wrong.
@@ -228,7 +246,8 @@ function ReportFlow() {
       track("upload_ok", { msgs: bucket(parsed.messages.length), people: parsed.participants.length, os: /Android/i.test(navigator.userAgent) ? "android" : /iPhone|iPad/i.test(navigator.userAgent) ? "ios" : "desktop" });
     } catch (e) {
       const reason = String((e as Error).message);
-      track("upload_error", { reason: ["no-chat", "solo", "short", "group"].includes(reason) ? reason : "format", count: bucket(file.size / 1024) });
+      track("upload_error", { reason: ["no-chat", "solo", "short", "group"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
+      at("upload_error");
       setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : tr("errRead"));
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   }
@@ -484,7 +503,7 @@ function Setup(p: {
   const [typing, setTyping] = useState(false);
   // A random example report each time (written examples, not AI, not the user's chat).
   const [preview] = useState(() => { let n = 1; try { n = Number(sessionStorage.getItem("rp-ex")) || (Math.random() < 0.5 ? 1 : 3); sessionStorage.setItem("rp-ex", String(n)); } catch { /* private mode */ } return n === 1 ? { n, t: "previewTitle", l: "previewLine" } : { n, t: `previewTitle${n}`, l: `previewLine${n}` }; });
-  useEffect(() => { if (q === 3) track("consent_view", { ex: `ex${preview.n}` }); }, [q]);
+  useEffect(() => { if (q === 3) track("consent_view", { ex: `ex${preview.n}` }); at(["setup_relation", "setup_worry", "setup_outside", "consent"][q] ?? "setup"); }, [q]);
   const decide = (yes: boolean) => { track("consent", { value: yes ? "yes" : "no", step: `ex${preview.n}` }); p.onDone(yes); };
   const end = useRef<HTMLDivElement>(null);
   useEffect(() => { setTyping(false); end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [q]);
