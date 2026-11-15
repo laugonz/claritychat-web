@@ -72,7 +72,8 @@ export default function ReportPage({ locale, example }: { locale?: string; examp
 
 function ReportFlow() {
   const [step, setStep] = useState<Step>("landing");
-  useEffect(() => { at(step); }, [step]);
+  const demoRef = useRef(false);
+  useEffect(() => { at(demoRef.current ? `demo_${step}` : step); }, [step]);
   const [os, setOs] = useState<"ios" | "android" | "desktop">("ios");
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState("");
@@ -121,7 +122,7 @@ function ReportFlow() {
     } catch { /* ignore */ }
     const utm = new URLSearchParams(location.search).get("utm_source");
     track("page_view", { source: (utm || ref || "directo").slice(0, 60) });
-    fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
+    if (!INTERNAL) fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref }) }).catch(() => {});
   }, []);
 
@@ -239,11 +240,11 @@ function ReportFlow() {
       const txt = names ? raw.split("] Marta:").join(`] ${names[0]}:`).split("] Iván:").join(`] ${names[1]}:`) : raw;
       const parsed = parseChat(txt);
       setChat(parsed); setStats(computeStats(parsed)); setMe(L === "it" ? "Giulia" : names ? names[0] : "Marta");
-      setDemo(true); setConsent(false); setStep("stories"); at("demo_stories");
+      demoRef.current = true; setDemo(true); setConsent(false); setStep("stories");
     } catch { setError(tr("errRead")); }
     setBusy(false);
   }
-  function endDemo() { setDemo(false); setChat(null); setStats(null); setMe(""); setStep("landing"); track("sample_open", { from: "demo_mine" }); }
+  function endDemo() { demoRef.current = false; setDemo(false); setChat(null); setStats(null); setMe(""); setStep("landing"); track("sample_open", { from: "demo_mine" }); }
 
   async function onFile(file?: File) {
     if (!file) { at("landing"); return; }
