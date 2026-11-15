@@ -532,6 +532,7 @@ function Setup(p: {
       </>}
 
       {q >= 3 && <>
+        <Ask>{tr("askReport")}</Ask>
         <div className="rp-ask-row"><Clara size={34} /><div className="rp-ask rp-consent-card">
           <div className="rp-preview" aria-hidden="true">
             <span className="rp-preview-k">{tr("previewLabel")}</span>

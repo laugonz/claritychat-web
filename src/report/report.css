@@ -423,7 +423,7 @@
 .ms-icons i.ms-tap{background:#3b82f6}
 @keyframes ms-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,139,69,.55)}50%{box-shadow:0 0 0 5px rgba(255,139,69,0)}}
 @media (prefers-reduced-motion: reduce){.ms-tap{animation:none}}
-.rp-how{font-size:14px;color:var(--rp-on-soft)}
+.rp-how{font-size:14px;color:var(--rp-on-soft);padding:0!important;background:none!important;border:0!important}
 .rp-how summary{cursor:pointer;color:var(--rp-teal);font-weight:700;font-size:13px}
 .rp-how p{margin:6px 0 0;line-height:1.45}
 .rp-how a{font-size:13px}
