@@ -438,3 +438,5 @@
 .rp-pitch .rp-btn + .rp-btn{margin-top:10px}
 .rp-wrapped-line{margin:-4px 0 14px;font-size:14px;color:var(--rp-teal);font-weight:600}
 .rp-answer-in{margin:4px 0 10px;font-weight:700;color:var(--rp-ink)}
+.rp-nofile{margin:14px 0 6px;padding:14px;border-radius:16px;background:rgba(66,197,202,.08);border:1px solid rgba(66,197,202,.3);scroll-margin-top:12px}
+.rp-nofile .rp-ask-row{margin-bottom:10px}

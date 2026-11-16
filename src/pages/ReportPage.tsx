@@ -87,6 +87,17 @@ function ReportFlow() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [demo, setDemo] = useState(false);
+  // Came back from the file picker without choosing anything → most likely the chat isn't exported yet: show how, right there.
+  const [noFile, setNoFile] = useState(false);
+  const picking = useRef(false);
+  useEffect(() => {
+    const back = () => {
+      if (!picking.current || document.visibilityState === "hidden") return;
+      setTimeout(() => { if (picking.current) { picking.current = false; setNoFile(true); at("landing_nofile"); track("upload_drop", { from: "picker_empty" }); } }, 1500);
+    };
+    addEventListener("focus", back); document.addEventListener("visibilitychange", back);
+    return () => { removeEventListener("focus", back); document.removeEventListener("visibilitychange", back); };
+  }, []);
   const fileRef = useRef<HTMLInputElement>(null);
   // A report from an earlier visit on this device (id only; reports live 30 days).
   const [last, setLast] = useState<{ id: string; ts: number } | null>(null);
@@ -247,7 +258,9 @@ function ReportFlow() {
   function endDemo() { demoRef.current = false; setDemo(false); setChat(null); setStats(null); setMe(""); setStep("landing"); track("sample_open", { from: "demo_mine" }); }
 
   async function onFile(file?: File) {
+    picking.current = false;
     if (!file) { at("landing"); return; }
+    setNoFile(false);
     setError(""); setBusy(true);
     let fmtShape = "";
     try {
@@ -290,8 +303,13 @@ function ReportFlow() {
               <p className="rp-muted">{tr("lead")}</p>
               {new Date() < new Date(2027, 0, 1) && <p className="rp-wrapped-line">{tr("wrappedLine")}</p>}
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
-              <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
+              <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); setTimeout(() => { picking.current = true; }, 300); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
+              {noFile && os !== "desktop" && <div className="rp-nofile" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "start" }); }}>
+                <div className="rp-ask-row"><Clara size={34} mood="soft" /><div className="rp-ask">{tr("noFileT")}</div></div>
+                <VisualSteps os={os} />
+                <p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr(os === "ios" ? "iosTip" : "andTip") }} />
+              </div>}
               <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>{tr("demoBtn")}</button>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
