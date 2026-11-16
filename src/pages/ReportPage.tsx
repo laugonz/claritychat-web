@@ -52,6 +52,10 @@ function maskNames(json: string, participants: string[]): string {
 
 async function readExport(file: File): Promise<string> {
   const buf = new Uint8Array(await file.arrayBuffer());
+  // A photo / screenshot / PDF instead of the export (people who know the screenshot app do this).
+  const isImg = /^image\//.test(file.type) || (buf[0] === 0xff && buf[1] === 0xd8) || (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e)
+    || String.fromCharCode(...buf.slice(4, 8)) === "ftyp" || String.fromCharCode(...buf.slice(0, 4)) === "%PDF";
+  if (isImg) throw new Error("image");
   let bytes: Uint8Array = buf;
   if (file.name.toLowerCase().endsWith(".zip") || (buf[0] === 0x50 && buf[1] === 0x4b)) {
     const files = unzipSync(buf, { filter: f => f.name.toLowerCase().endsWith(".txt") && !f.name.includes("__MACOSX") });
@@ -61,7 +65,10 @@ async function readExport(file: File): Promise<string> {
     bytes = files[name];
   }
   const utf16 = bytes[0] === 0xff && bytes[1] === 0xfe;
-  return new TextDecoder(utf16 ? "utf-16le" : "utf-8").decode(bytes);
+  const text = new TextDecoder(utf16 ? "utf-16le" : "utf-8").decode(bytes);
+  const head = text.slice(0, 4000);
+  if ((head.match(/\uFFFD|\u0000/g)?.length ?? 0) > head.length * 0.05) throw new Error("image");   // binary, not a chat
+  return text;
 }
 
 export default function ReportPage({ locale, example }: { locale?: string; example?: boolean } = {}) {
@@ -277,9 +284,10 @@ function ReportFlow() {
       track("upload_ok", { msgs: bucket(parsed.messages.length), people: parsed.participants.length, os: /Android/i.test(navigator.userAgent) ? "android" : /iPhone|iPad/i.test(navigator.userAgent) ? "ios" : "desktop" });
     } catch (e) {
       const reason = String((e as Error).message);
-      track("upload_error", { reason: ["no-chat", "solo", "short", "group"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
+      track("upload_error", { reason: ["no-chat", "solo", "short", "group", "image"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
       at("upload_error");
-      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : reason === "format" ? tr("errFormat") : tr("errRead"));
+      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : reason === "format" ? tr("errFormat") : reason === "image" ? tr("errImage") : tr("errRead"));
+      if (reason === "image") setNoFile(true);
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   }
 
