@@ -225,9 +225,26 @@ function ReportFlow() {
   const seenRef = useRef("");
   useEffect(() => {
     if (!report || step !== "report") return;   // only when it's actually on screen (not while still in the stories)
-    const kind = report.chapters.some(c => (c as { locked?: boolean }).locked) ? "paywall_view" : "report_read";
-    if (seenRef.current !== kind) { seenRef.current = kind; track(kind); }
-    at(kind === "paywall_view" ? "paywall" : "report_read");
+    const locked = report.chapters.some(c => (c as { locked?: boolean }).locked);
+    if (!locked) {
+      if (seenRef.current !== "report_read") { seenRef.current = "report_read"; track("report_read"); }
+      at("report_read");
+      return;
+    }
+    // Locked: the free part is on screen, but paywall_view (and its Telegram ping) only fires
+    // once the paywall block itself scrolls into view, not the moment the report renders.
+    if (seenRef.current === "paywall_view") { at("paywall"); return; }
+    at("report_free");
+    const fire = () => { if (seenRef.current !== "paywall_view") { seenRef.current = "paywall_view"; track("paywall_view"); at("paywall"); } };
+    let io: IntersectionObserver | null = null;
+    const raf = requestAnimationFrame(() => {
+      const el = document.querySelector(".rp-paywall");
+      if (!el) return;
+      if (typeof IntersectionObserver === "undefined") { fire(); return; }
+      io = new IntersectionObserver(entries => { if (entries.some(e => e.isIntersecting)) { fire(); io?.disconnect(); } }, { threshold: 0.25 });
+      io.observe(el);
+    });
+    return () => { cancelAnimationFrame(raf); io?.disconnect(); };
   }, [report, step]);
   useEffect(() => { if (step === "report" && !consent && !reportId) at("no_consent_stats"); }, [step, consent, reportId]);
 
