@@ -257,11 +257,11 @@ export function Numbers({ viz }: { viz: Viz }) {
 }
 
 /** Keep the private link: send it to yourself on WhatsApp, or copy it. */
-function SaveLink() {
+export function SaveLink({ text }: { text?: string } = {}) {
   const url = typeof location !== "undefined" ? `${location.origin}${location.pathname}?r=${new URLSearchParams(location.search).get("r") ?? ""}` : "";
   return (
     <div className="rp-savelink">
-      <p>{tr("saveLinkT")}</p>
+      <p>{text ?? tr("saveLinkT")}</p>
       <div>
         <a className="rp-wa" href={`https://wa.me/?text=${encodeURIComponent(tr("saveWaText", { u: url }))}`} target="_blank" rel="noopener">{tr("saveWa")}</a>
         <button className="rp-copylink" onClick={e => { const b = e.currentTarget; navigator.clipboard?.writeText(url).then(() => { b.textContent = tr("r_copied"); }, () => { b.textContent = url; }); }}>{tr("r_copyLink")}</button>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { unzipSync } from "fflate";
 import { buildViz, computeStats, countTerms, parseChat, safeName, sampleChat, statsForPrompt, verifyQuotes, type ParsedChat, type Stats, type Viz } from "../report/chat";
-import { Numbers, ReportView, type Report } from "../report/ReportView";
+import { Numbers, ReportView, SaveLink, type Report } from "../report/ReportView";
 import { Clara } from "../report/Mascot";
 import { StoryVisual } from "../report/StoryVisual";
 import { shareCard } from "../report/shareCard";
@@ -94,6 +94,7 @@ function ReportFlow() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [demo, setDemo] = useState(false);
+  const reqAt = useRef(0);
   // Came back from the file picker without choosing anything → most likely the chat isn't exported yet: show how, right there.
   const [noFile, setNoFile] = useState(false);
   const picking = useRef(false);
@@ -199,7 +200,7 @@ function ReportFlow() {
       const { id } = await r.json();
       track("report_requested", { msgs: bucket(stats.total) });
       store.set("rp-last", JSON.stringify({ id, ts: Date.now() }));
-      setReportId(id);
+      setReportId(id); reqAt.current = Date.now();
       history.replaceState(null, "", `${location.pathname}?r=${id}`);
       poll(id);
     } catch (e) {
@@ -210,6 +211,15 @@ function ReportFlow() {
 
   // With the chat still in memory, only show bubbles that really exist in it.
   const shown = useMemo(() => (report && chat ? verifyQuotes(report, chat).report : report), [report, chat]);
+
+  // Report ready while they're in another app/tab → tab title says so, and a short buzz when they come back.
+  useEffect(() => {
+    if (!report || typeof document === "undefined" || !document.hidden) return;
+    const old = document.title; document.title = tr("readyTitle");
+    const back = () => { if (!document.hidden) { document.title = old; try { navigator.vibrate?.(120); } catch { /* unsupported */ } document.removeEventListener("visibilitychange", back); } };
+    document.addEventListener("visibilitychange", back);
+    return () => document.removeEventListener("visibilitychange", back);
+  }, [report]);
 
   // Funnel: did they see the paywall, or the full report?
   const seenRef = useRef("");
@@ -386,7 +396,7 @@ function ReportFlow() {
                     <details className="rp-how"><summary>{tr("consentHow")}</summary><p>{tr("consentHowBody")} <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a></p></details>
                     {stats && <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late" }); setConsent(true); startReport(true); }}>{tr("consentYes")}</button>}
                   </div></div></>
-              : <><WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} />{viz && <Numbers viz={viz} />}</>}
+              : <><WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} startedAt={reqAt.current} />{viz && <Numbers viz={viz} />}</>}
           </section>
         )}
       </div>
@@ -669,13 +679,21 @@ function useRotating(lines: string[], ms: number) {
   return lines[k] ?? "";
 }
 
-function WaitScreen({ lines }: { lines: string[] }) {
+const EXPECTED_S = 85;   // typical time for a long chat
+function WaitScreen({ lines, startedAt }: { lines: string[]; startedAt?: number }) {
   const line = useRotating(lines, 3200);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
+  const el = startedAt ? (now - startedAt) / 1000 : 0;
+  const left = Math.max(0, Math.round((EXPECTED_S - el) / 5) * 5);
+  const pct = startedAt ? Math.min(96, 4 + (el / EXPECTED_S) * 92) : 10;
   return (
     <div className="rp-wait">
       <Clara size={88} mood="soft" />
       <h1 key={line} className="rp-wait-line">{line}</h1>
-      <p className="rp-muted">{tr("waitNote")}</p>
+      <div className="rp-progress" role="progressbar" aria-valuenow={Math.round(pct)}><i style={{ width: `${pct}%` }} /></div>
+      <p className="rp-wait-left">{startedAt ? (left > 5 ? tr("waitLeft", { s: left }) : tr("waitAlmost")) : tr("waitNote")}</p>
+      <SaveLink text={tr("waitSave")} />
     </div>
   );
 }
