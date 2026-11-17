@@ -142,7 +142,7 @@ function ReportFlow() {
     const utm = new URLSearchParams(location.search).get("utm_source");
     track("page_view", { source: (utm || ref || "directo").slice(0, 60) });
     if (!INTERNAL) fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref }) }).catch(() => {});
+      body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref, sid: SID }) }).catch(() => {});
   }, []);
 
   // Coming back from Stripe (or opening the private link): ?r=<id>[&session_id=…]
@@ -191,7 +191,7 @@ function ReportFlow() {
       const r = await fetch(`${API}/chat/report`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang,
+          userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang, sid: SID,
           historyNote: stats.historyMayBeIncomplete ? tr("historyNote", { d: fmt(stats.first) }) : "",
           stats: JSON.stringify(statsForPrompt(stats, chat.participants)), transcript: sample.transcript, viz: maskNames(JSON.stringify(v), chat.participants),
         }),
