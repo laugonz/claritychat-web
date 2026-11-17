@@ -1,6 +1,6 @@
 // The report as a letter: one chart per chapter, built from the AI's structured
 // fields plus the chat's own counts (Viz). Locked chapters show only their titles.
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Viz } from "./chat";
 import { Clara } from "./Mascot";
 import { StoryVisual } from "./StoryVisual";
@@ -289,6 +289,26 @@ function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNo
   );
 }
 
+/** While reading a locked report, a slim "unlock · 5,99 €" bar stays at the bottom, so paying never
+ *  depends on scrolling down to the paywall. Hidden at the very top and while the paywall's own button is on screen. */
+function useStickyPay(active: boolean) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!active || typeof window === "undefined") return;
+    let wallVisible = false;
+    const update = () => setShow(!wallVisible && window.scrollY > 200);
+    // Hide only once the real pay button is on screen (the paywall card is tall: hook, chapter list, price).
+    const el = document.querySelector(".rp-paywall .rp-main");
+    const io = el && typeof IntersectionObserver !== "undefined"
+      ? new IntersectionObserver(es => { wallVisible = es.some(e => e.isIntersecting); update(); }) : null;
+    if (el && io) io.observe(el);
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => { io?.disconnect(); window.removeEventListener("scroll", update); };
+  }, [active]);
+  return active && show;
+}
+
 export function ReportView({ report, viz, counts, onPay, paying, payError, example, question, relation }: {
   report: Report; viz: Viz | null; counts?: Record<string, Record<string, number>>;
   onPay: () => void; paying: boolean; payError?: string; example?: boolean; question?: string; relation?: string;
@@ -296,9 +316,11 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
   const ansIdx = report.answer_chapter ? report.chapters.findIndex(c => c.id === report.answer_chapter) : -1;
   const locked = report.chapters.some(c => c.locked);
   const lockIcon = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
+  const showSticky = useStickyPay(locked && !example);
   const chapterHead = (c: Chapter, i: number) => <h2><span className="rp-n">{String(i + 1).padStart(2, "0")}</span><span>{c.emoji} {c.title}</span></h2>;
   return (
     <div className="rp-report">
+      {showSticky && <div className="rp-sticky-pay"><button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button></div>}
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
       {!example && <SaveLink />}

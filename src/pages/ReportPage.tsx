@@ -122,11 +122,15 @@ function ReportFlow() {
 
   // One "visit" ping per browser session → Telegram (country from time zone, source from referrer). Nothing stored.
   useEffect(() => {
-    // One visit per device every 12 h (Android restores old tabs when Chrome opens; those aren't new visits).
+    // Once per tab (each tab has its own SID): the backend needs the place for every SID so all its
+    // Telegram pings carry the same flag. The ① Telegram ping itself stays once per device every 12 h
+    // (Android restores old tabs when Chrome opens; those aren't new visits) → otherwise "quiet".
+    try { if (sessionStorage.getItem("rp-pv") === "1") return; sessionStorage.setItem("rp-pv", "1"); } catch { /* ignore */ }
+    let quiet = false;
     try {
       const last = Number(localStorage.getItem("rp-visit-at") || 0);
-      if (Date.now() - last < 12 * 3600 * 1000) return;
-      localStorage.setItem("rp-visit-at", String(Date.now()));
+      if (Date.now() - last < 12 * 3600 * 1000) quiet = true;
+      else localStorage.setItem("rp-visit-at", String(Date.now()));
     } catch { /* private mode: still ping once */ }
     let ref = "";
     try {
@@ -142,7 +146,7 @@ function ReportFlow() {
     const utm = new URLSearchParams(location.search).get("utm_source");
     track("page_view", { source: (utm || ref || "directo").slice(0, 60) });
     if (!INTERNAL) fetch(`${API}/chat/visit`, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref, sid: SID }) }).catch(() => {});
+      body: JSON.stringify({ tz: Intl.DateTimeFormat().resolvedOptions().timeZone, lang: navigator.language, ref: utm || ref, sid: SID, quiet }) }).catch(() => {});
   }, []);
 
   // Coming back from Stripe (or opening the private link): ?r=<id>[&session_id=…]
@@ -710,6 +714,8 @@ function WaitScreen({ lines, startedAt }: { lines: string[]; startedAt?: number 
       <h1 key={line} className="rp-wait-line">{line}</h1>
       <div className="rp-progress" role="progressbar" aria-valuenow={Math.round(pct)}><i style={{ width: `${pct}%` }} /></div>
       <p className="rp-wait-left">{startedAt ? (left > 5 ? tr("waitLeft", { s: left }) : tr("waitAlmost")) : tr("waitNote")}</p>
+      {/* Whoever leaves during the wait must already know what's coming and what it costs. */}
+      <p className="rp-wait-offer" dangerouslySetInnerHTML={{ __html: tr("waitOffer") }} />
       <SaveLink text={tr("waitSave")} />
     </div>
   );

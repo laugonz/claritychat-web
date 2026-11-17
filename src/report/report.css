@@ -444,3 +444,10 @@
 .rp-progress i{display:block;height:100%;background:var(--rp-teal);border-radius:99px;transition:width 1s linear}
 .rp-wait-left{margin:8px 0 14px;font-weight:700;color:var(--rp-teal)}
 .rp-wait .rp-savelink{max-width:420px;margin:0 auto}
+
+/* Always-at-hand unlock while reading a locked report (hidden at the top and when the paywall is in view) */
+.rp-sticky-pay{position:fixed;left:0;right:0;bottom:0;z-index:50;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(to top,var(--rp-paper) 70%,transparent);display:flex;justify-content:center;animation:rp-in .25s ease-out}
+.rp-sticky-pay .rp-btn{width:100%;max-width:520px;margin:0;box-shadow:0 10px 30px rgba(7,22,38,.18)}
+/* What's coming and what it costs, already on the wait screen */
+.rp-wait-offer{max-width:420px;margin:6px auto 0;font-size:14px;line-height:1.5;color:var(--rp-ink-soft);background:var(--rp-paper-2);border-radius:14px;padding:12px 14px}
+.rp-wait-offer b{color:var(--rp-ink)}
