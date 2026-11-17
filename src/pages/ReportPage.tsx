@@ -411,7 +411,7 @@ function ReportFlow() {
                     <p>{tr("noConsentPitch", { T: otherName })}</p>
                     <p className="rp-hint">{tr("consentSend")} {tr("consentPrivate")}</p>
                     <details className="rp-how"><summary>{tr("consentHow")}</summary><p>{tr("consentHowBody")} <a href={homePath() + "privacy/"} target="_blank" rel="noopener">{tr("privacy")} ↗</a></p></details>
-                    {stats && <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late" }); setConsent(true); startReport(true); }}>{tr("consentYes")}</button>}
+                    {stats && <button className="rp-btn rp-main" onClick={() => { track("consent", { value: "yes", step: "late" }); setConsent(true); startReport(true); window.scrollTo(0, 0); }}>{tr("consentYes")}</button>}
                   </div></div></>
               : <><WaitScreen lines={stats ? waitingLines(stats, me) : [tr("writing")]} startedAt={reqAt.current} />{viz && <Numbers viz={viz} />}</>}
           </section>
