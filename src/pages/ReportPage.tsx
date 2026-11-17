@@ -118,6 +118,7 @@ function ReportFlow() {
   const [counts, setCounts] = useState<Record<string, Record<string, number>> | undefined>();
   const [reportError, setReportError] = useState("");
   const [paying, setPaying] = useState(false);
+  const [finishing, setFinishing] = useState(false);   // paid, the full chapters are still being written
   const [payError, setPayError] = useState("");
 
   // One "visit" ping per browser session → Telegram (country from time zone, source from referrer). Nothing stored.
@@ -163,8 +164,11 @@ function ReportFlow() {
     (async () => {
       if (sid) {
         const r = await fetch(`${API}/chat/report/${id}/unlock`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ session_id: sid }) });
-        if (r.ok) { track("purchase"); const d = await r.json(); setReport(d.report); if (d.viz) setViz(d.viz); history.replaceState(null, "", `${location.pathname}?r=${id}`); return; }
-        setPayError(tr("errPay"));
+        if (r.ok) {
+          track("purchase"); const d = await r.json(); if (d.viz) setViz(d.viz); history.replaceState(null, "", `${location.pathname}?r=${id}`);
+          if (d.status === "ready") { setReport(d.report); return; }
+          setFinishing(true);   // paid before the full report was done: "finishing…" until it is
+        } else setPayError(tr("errPay"));
       }
       poll(id);
     })();
@@ -177,10 +181,13 @@ function ReportFlow() {
         if (r.status === 404) { setReportError(tr("errGone")); return; }
         const d = await r.json();
         if (d.viz) setViz(d.viz);
-        if (d.status === "ready") { if (k > 0) track("report_ready"); setReport(d.report); return; }
+        // "preview" = the free beginning + every chapter title, ready in seconds: enough to read and pay.
+        const viewable = d.status === "ready" || d.status === "preview";
+        if (viewable && d.paid && d.status !== "ready") setFinishing(true);   // paid: wait for the full chapters
+        else if (viewable) { if (k > 0) track("report_ready"); setFinishing(false); setReport(d.report); return; }
         if (d.status === "error") { setReportError(tr("errGen")); return; }
       } catch { /* network blip: keep polling */ }
-      await new Promise(res => setTimeout(res, 4000));
+      await new Promise(res => setTimeout(res, k < 15 ? 2000 : 4000));   // the preview takes seconds: look often at first
     }
     setReportError(tr("errSlow"));
   }
@@ -393,7 +400,8 @@ function ReportFlow() {
         {step === "report" && (
           <section className="rp-screen rp-pad rp-letter">
             {report && (stats || viz?.stories?.length) ? <button className="rp-stories-again" onClick={() => setStep("stories")}>{tr("seeStories")}</button> : null}
-            {shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} question={question} relation={relation} />
+            {finishing ? <WaitScreen lines={[tr("finishing")]} paid />
+              : shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} question={question} relation={relation} />
               : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
                   {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
               : demo && stats ? <>
@@ -700,8 +708,8 @@ function useRotating(lines: string[], ms: number) {
   return lines[k] ?? "";
 }
 
-const EXPECTED_S = 85;   // typical time for a long chat
-function WaitScreen({ lines, startedAt }: { lines: string[]; startedAt?: number }) {
+const EXPECTED_S = 20;   // the free preview (beginning + chapter titles) usually takes 10–20 s
+function WaitScreen({ lines, startedAt, paid }: { lines: string[]; startedAt?: number; paid?: boolean }) {
   const line = useRotating(lines, 3200);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const t = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(t); }, []);
@@ -715,7 +723,7 @@ function WaitScreen({ lines, startedAt }: { lines: string[]; startedAt?: number 
       <div className="rp-progress" role="progressbar" aria-valuenow={Math.round(pct)}><i style={{ width: `${pct}%` }} /></div>
       <p className="rp-wait-left">{startedAt ? (left > 5 ? tr("waitLeft", { s: left }) : tr("waitAlmost")) : tr("waitNote")}</p>
       {/* Whoever leaves during the wait must already know what's coming and what it costs. */}
-      <p className="rp-wait-offer" dangerouslySetInnerHTML={{ __html: tr("waitOffer") }} />
+      {!paid && <p className="rp-wait-offer" dangerouslySetInnerHTML={{ __html: tr("waitOffer") }} />}
       <SaveLink text={tr("waitSave")} />
     </div>
   );
