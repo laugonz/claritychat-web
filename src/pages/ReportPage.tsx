@@ -202,7 +202,7 @@ function ReportFlow() {
       const r = await fetch(`${API}/chat/report`, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang, sid: SID,
+          userName: safeName(me, chat.participants), relation: relLabel(relation), question, context, language: lang, sid: SID, internal: INTERNAL,
           historyNote: stats.historyMayBeIncomplete ? tr("historyNote", { d: fmt(stats.first) }) : "",
           stats: JSON.stringify(statsForPrompt(stats, chat.participants)), transcript: sample.transcript, viz: maskNames(JSON.stringify(v), chat.participants),
         }),
