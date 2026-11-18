@@ -451,3 +451,6 @@
 /* What's coming and what it costs, already on the wait screen */
 .rp-wait-offer{max-width:420px;margin:6px auto 0;font-size:14px;line-height:1.5;color:var(--rp-ink-soft);background:var(--rp-paper-2);border-radius:14px;padding:12px 14px}
 .rp-wait-offer b{color:var(--rp-ink)}
+
+.rp-pay-note{background:#e3f4ef;color:#145244;border-radius:12px;padding:12px;margin:10px 0 0;font-size:14.5px;text-align:center}
+.rp-sticky-pay a.rp-btn{text-decoration:none;display:flex;align-items:center;justify-content:center}

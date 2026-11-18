@@ -118,7 +118,8 @@ function ReportFlow() {
   const [counts, setCounts] = useState<Record<string, Record<string, number>> | undefined>();
   const [reportError, setReportError] = useState("");
   const [paying, setPaying] = useState(false);
-  const [finishing, setFinishing] = useState(false);   // paid, the full chapters are still being written
+  const [finishing, setFinishing] = useState(false);
+  const [payNote, setPayNote] = useState("");          // back from Stripe without paying   // paid, the full chapters are still being written
   const [payError, setPayError] = useState("");
 
   // One "visit" ping per browser session → Telegram (country from time zone, source from referrer). Nothing stored.
@@ -158,7 +159,7 @@ function ReportFlow() {
     setReportId(id); setStep("report");
     store.set("rp-last", JSON.stringify({ id, ts: Date.now() }));
     const sid = q.get("session_id");
-    if (q.get("c") === "1") { track("checkout_cancel"); history.replaceState(null, "", `${location.pathname}?r=${id}`); }
+    if (q.get("c") === "1") { track("checkout_cancel"); setPayNote(tr("payCancelled")); history.replaceState(null, "", `${location.pathname}?r=${id}`); }
     else if (!sid) track("report_link_open");
     const c = store.get(`rp-counts-${id}`); if (c) try { setCounts(JSON.parse(c)); } catch { /* ignore */ }
     (async () => {
@@ -266,6 +267,21 @@ function ReportFlow() {
     if (!terms.length) return;
     const c = countTerms(chat, terms); setCounts(c); store.set(`rp-counts-${reportId}`, JSON.stringify(c));
   }, [report, chat, reportId]);
+
+  // Browser "back" from Stripe restores this page from the back/forward cache with the button still
+  // saying "opening payment…" and disabled. Re-enable it so they can try again.
+  useEffect(() => {
+    const onShow = (e: PageTransitionEvent) => { if (e.persisted) { setPaying(false); track("checkout_cancel", { from: "back" }); } };
+    window.addEventListener("pageshow", onShow);
+    return () => window.removeEventListener("pageshow", onShow);
+  }, []);
+
+  // Back from Stripe without paying: land on the pay button (with "nothing was charged"), not at the top.
+  useEffect(() => {
+    if (!payNote || !report) return;
+    const raf = requestAnimationFrame(() => document.querySelector(".rp-paywall")?.scrollIntoView({ block: "start" }));
+    return () => cancelAnimationFrame(raf);
+  }, [payNote, report]);
 
   async function pay() {
     at("stripe");
@@ -401,7 +417,7 @@ function ReportFlow() {
           <section className="rp-screen rp-pad rp-letter">
             {report && (stats || viz?.stories?.length) ? <button className="rp-stories-again" onClick={() => setStep("stories")}>{tr("seeStories")}</button> : null}
             {finishing ? <WaitScreen lines={[tr("finishing")]} paid />
-              : shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} question={question} relation={relation} />
+              : shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} payNote={payNote} question={question} relation={relation} />
               : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
                   {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
               : demo && stats ? <>
@@ -797,7 +813,7 @@ function ExamplePage() {
       <div className="rp-shell rp-at-report">
         <section className="rp-screen rp-pad rp-letter">
           <p className="rp-ex-banner"><Clara size={30} mood="soft" /><span>{tr("exBanner", { a: first(ex.viz.me), b: first(ex.viz.other) })}</span></p>
-          <ReportView report={ex.report} viz={ex.viz} onPay={() => {}} paying={false} example />
+          <ReportView report={ex.report} viz={ex.viz} onPay={() => {}} paying={false} example ctaHref={home} />
           <div className="rp-ex-cta"><a className="rp-btn rp-main" href={home} onClick={() => track("sample_open", { from: "example_cta" })}>{tr("exCta")}</a><p className="rp-hint">{tr("exCtaNote")}</p></div>
         </section>
       </div>

@@ -291,36 +291,39 @@ function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNo
 
 /** While reading a locked report, a slim "unlock · 5,99 €" bar stays at the bottom, so paying never
  *  depends on scrolling down to the paywall. Hidden at the very top and while the paywall's own button is on screen. */
-function useStickyPay(active: boolean) {
+function useStickyPay(active: boolean, target = ".rp-paywall .rp-main") {
   const [show, setShow] = useState(false);
   useEffect(() => {
     if (!active || typeof window === "undefined") return;
     let wallVisible = false;
     const update = () => setShow(!wallVisible && window.scrollY > 200);
     // Hide only once the real pay button is on screen (the paywall card is tall: hook, chapter list, price).
-    const el = document.querySelector(".rp-paywall .rp-main");
+    const el = document.querySelector(target);
     const io = el && typeof IntersectionObserver !== "undefined"
       ? new IntersectionObserver(es => { wallVisible = es.some(e => e.isIntersecting); update(); }) : null;
     if (el && io) io.observe(el);
     window.addEventListener("scroll", update, { passive: true });
     update();
     return () => { io?.disconnect(); window.removeEventListener("scroll", update); };
-  }, [active]);
+  }, [active, target]);
   return active && show;
 }
 
-export function ReportView({ report, viz, counts, onPay, paying, payError, example, question, relation }: {
+export function ReportView({ report, viz, counts, onPay, paying, payError, payNote, example, ctaHref, question, relation }: {
   report: Report; viz: Viz | null; counts?: Record<string, Record<string, number>>;
-  onPay: () => void; paying: boolean; payError?: string; example?: boolean; question?: string; relation?: string;
+  onPay: () => void; paying: boolean; payError?: string; payNote?: string; example?: boolean; ctaHref?: string; question?: string; relation?: string;
 }) {
   const ansIdx = report.answer_chapter ? report.chapters.findIndex(c => c.id === report.answer_chapter) : -1;
   const locked = report.chapters.some(c => c.locked);
   const lockIcon = <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>;
   const showSticky = useStickyPay(locked && !example);
+  // The sample report is long and its only "do mine" button is at the very end: keep it at hand too.
+  const showExSticky = useStickyPay(!!example && !!ctaHref, ".rp-ex-cta .rp-main");
   const chapterHead = (c: Chapter, i: number) => <h2><span className="rp-n">{String(i + 1).padStart(2, "0")}</span><span>{c.emoji} {c.title}</span></h2>;
   return (
     <div className="rp-report">
       {showSticky && <div className="rp-sticky-pay"><button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button></div>}
+      {showExSticky && <div className="rp-sticky-pay"><a className="rp-btn rp-main" href={ctaHref}>{tr("exCta")} · {tr("exCtaFree")}</a></div>}
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
       {!example && <SaveLink />}
@@ -338,6 +341,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, examp
             <div className="rp-price"><strong>{tr("r_price")}</strong></div>
             <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button>
             <p className="rp-hint rp-waiver">{tr("r_waiver")}</p>
+            {payNote && !payError && <p className="rp-pay-note" role="status">{payNote}</p>}
             {payError && <p className="rp-error" role="alert">{payError}</p>}
             <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_payNote")}</p>
             <a className="rp-example-link rp-example-paywall" href={exampleHref()}>{tr("seeExample")}</a>
