@@ -231,6 +231,46 @@ export function safeName(name: string, participants: string[]): string {
 const pad = (n: number) => String(n).padStart(2, "0");
 const stamp = (d: Date) => `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${String(d.getFullYear()).slice(2)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 
+// Words for a concrete day, per JS weekday (0 = Sunday), in the six report languages.
+const WEEKDAYS: RegExp[] = [
+  /\b(domingo|sunday|domenica|sonntag|dimanche|niedziel[aęi])\b/i,
+  /\b(lunes|monday|luned[iì]|montag|lundi|poniedzia[lł]ek)\b/i,
+  /\b(martes|tuesday|marted[iì]|dienstag|mardi|wtorek)\b/i,
+  /\b(mi[eé]rcoles|wednesday|mercoled[iì]|mittwoch|mercredi|[sś]rod[aęy])\b/i,
+  /\b(jueves|thursday|gioved[iì]|donnerstag|jeudi|czwartek)\b/i,
+  /\b(viernes|friday|venerd[iì]|freitag|vendredi|pi[aą]tek)\b/i,
+  /\b(s[aá]bado|saturday|sabato|samstag|samedi|sobot[aęy])\b/i,
+];
+// "mañana" = tomorrow, not "esta mañana" / "por la mañana" (morning).
+const TOMORROW = /(?<!(?:esta|la|una|cada|toda) )\b(ma[nñ]ana(?! por| de| a las)|tomorrow|domani|demain|jutro)\b|(?<!(?:heute|gestern|am) )\bmorgen\b/i;
+const DAY_OF_MONTH = /\b(?:el (?:d[ií]a )?|the |il |le |am )(\d{1,2})(?:th|st|nd|rd|\.)?\b/i;
+// Only future-looking messages ("el martes nos vemos", "mañana te cuento"), not stories about the past.
+const FUTURE = /\b(quedamos|nos vemos|te veo|vemos|hablamos|lo hablamos|te (llamo|cuento|digo|escribo|aviso)|vienes|voy|vamos|tengo|es|meet|see you|talk|call you|i'?ll|we'?ll|have|ci vediamo|ti chiamo|ho|treffen|ruf|habe|on se voit|je t'appelle|j'ai|spotkajmy|zadzwoni|mam)\b/i;
+
+/** The days that plans, appointments and promises in the chat were set for ("el martes", "mañana", "el 10"). */
+export function followUpDays(msgs: Message[]): Date[] {
+  const out = new Map<number, Date>();
+  const last = msgs.length ? +msgs[msgs.length - 1].date : 0;
+  for (const m of msgs) {
+    if (m.kind !== "text" || !FUTURE.test(m.text)) continue;
+    const base = new Date(m.date.getFullYear(), m.date.getMonth(), m.date.getDate());
+    let t: Date | null = null;
+    const wd = WEEKDAYS.findIndex(re => re.test(m.text));
+    if (wd >= 0) { const ahead = (wd - base.getDay() + 7) % 7 || 7; t = new Date(base.getFullYear(), base.getMonth(), base.getDate() + ahead); }
+    else if (TOMORROW.test(m.text)) t = new Date(base.getFullYear(), base.getMonth(), base.getDate() + 1);
+    else {
+      const dm = m.text.match(DAY_OF_MONTH); const n = dm ? Number(dm[1]) : 0;
+      if (n >= 1 && n <= 31) {
+        t = new Date(base.getFullYear(), base.getMonth(), n);
+        if (+t <= +base) t = new Date(base.getFullYear(), base.getMonth() + 1, n);
+        if (+t - +base > 40 * 864e5) t = null;      // "el 10" far away is probably not a date
+      }
+    }
+    if (t && +t <= last) out.set(+t, t);
+  }
+  return [...out.values()].sort((a, b) => +a - +b);
+}
+
 export function sampleChat(chat: ParsedChat, stats: Stats, budget = 2200): { transcript: string; covered: number } {
   const all = chat.messages.filter(m => m.kind !== "call").sort((a, b) => +a.date - +b.date);
   const picked = new Set<number>();
@@ -254,6 +294,10 @@ export function sampleChat(chat: ParsedChat, stats: Stats, budget = 2200): { tra
     const planIdx = all.map((m, i) => (m.kind === "text" && PLAN.test(m.text) ? i : -1)).filter(i => i >= 0);
     const step = Math.max(1, Math.ceil(planIdx.length / Math.floor(budget / 10 / 6)));   // ~10% of the budget
     for (let k = 0; k < planIdx.length; k += step) add(planIdx[k] - 2, planIdx[k] + 4);
+    // ...and the day it was set for: what is said that day (or the first messages after it, if the chat goes quiet)
+    // is how the AI can tell whether it happened, who asked how it went, or who explained what.
+    const dayIdx = followUpDays(all).filter((_, k, xs) => k % Math.max(1, Math.ceil(xs.length / Math.floor(budget * 0.1 / 10))) === 0);   // ~10% of the budget
+    for (const d of dayIdx) { const i = indexOf(d); add(i - 1, i + 9); }
     // Cancellations and postponements ("lo dejamos para otro día", "se me ha liado", "al final no"):
     // a plan that breaks is usually a key moment, and it hides in the middle of long days.
     const CANCEL = /(lo dejamos|dej[eé]moslo|otro d[ií]a|se me ha liado|me ha surgido|al final no|no puedo (hoy|al final)|mejor otro|lo aplazamos|cancel|rain check|another (day|time)|something came up|can'?t make it|rimandiamo|un altro giorno|non riesco|alla fine no|mi è saltat|ein andermal|ein anderes mal|klappt (doch )?nicht|kann (doch )?nicht|verschieben|abgesagt|une autre fois|on remet|je peux pas finalement|annul|empêchement|przełóżmy|innym razem|nie dam rady|jednak nie|odwoł)/i;
@@ -370,11 +414,25 @@ export function verifyQuotes<R extends { chapters: { key_exchange?: { text: stri
   const exists = (t: string) => { const n = norm(t); return n.length > 0 && bodies.some(b => b === n || (n.length >= 12 && b.includes(n))); };
   let dropped = 0;
   const keep = <T extends { text: string }>(xs: T[]) => xs.filter(x => { const ok = exists(x.text); if (!ok) dropped++; return ok; });
-  const chapters = report.chapters.map(c => ({
-    ...c,
-    ...(c.key_exchange ? { key_exchange: keep(c.key_exchange) } : {}),
-    ...(c.opening_exchange ? { opening_exchange: keep(c.opening_exchange) } : {}),
-    ...(c.topic_timeline?.steps ? { topic_timeline: { ...c.topic_timeline, steps: keep(c.topic_timeline.steps) } } : {}),
-  }));
-  return { report: { ...report, chapters }, dropped };
+  // «Quotes» inside the prose: a fragment of a real message (any length; "…" may join two fragments).
+  // One that isn't in the chat is the AI's own paraphrase: keep the words, drop the «» so it never reads as a quote.
+  const inChat = (q: string) => q.split(/…|\.\.\./).map(norm).filter(Boolean).every(f => bodies.some(b => b.includes(f)));
+  const unquote = <T,>(t: T): T => typeof t === "string"
+    ? t.replace(/«([^»]+)»/g, (all, q: string) => { if (inChat(q)) return all; unquoted++; return q; }) as T : t;
+  let unquoted = 0;
+  const chapters = report.chapters.map(c => {
+    const x = c as typeof c & { body?: string; teaser?: string; title?: string };
+    return {
+      ...c,
+      ...(x.body ? { body: unquote(x.body) } : {}),
+      ...(x.teaser ? { teaser: unquote(x.teaser) } : {}),
+      ...(x.title ? { title: unquote(x.title) } : {}),
+      ...(c.key_exchange ? { key_exchange: keep(c.key_exchange) } : {}),
+      ...(c.opening_exchange ? { opening_exchange: keep(c.opening_exchange) } : {}),
+      ...(c.topic_timeline?.steps ? { topic_timeline: { ...c.topic_timeline, steps: keep(c.topic_timeline.steps) } } : {}),
+    };
+  });
+  const r = report as R & { title?: string; verdict?: string; hook?: string };
+  const top = { ...(r.title ? { title: unquote(r.title) } : {}), ...(r.verdict ? { verdict: unquote(r.verdict) } : {}), ...(r.hook ? { hook: unquote(r.hook) } : {}) };
+  return { report: { ...report, ...top, chapters }, dropped: dropped + unquoted };
 }
