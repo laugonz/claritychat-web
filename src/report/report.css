@@ -467,3 +467,52 @@
 .rp-lang-pick{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--rp-on-soft);margin:0 0 12px}
 .rp-lang-pick select{font:inherit;font-size:14px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit}
 .rp-lang-pick option{color:#11243a}
+
+/* ===== Light theme (2026-11-18): landing, counting, setup and consent on paper, like the report.
+   Only the stories (and the phone mock-ups that show them) stay dark, as cards. ===== */
+.rp{background:var(--rp-paper)}
+.rp-dark{
+  --rp-navy:#f8f6f1; --rp-navy-2:#ffffff; --rp-navy-3:#efebe3;
+  --rp-on:#11243a; --rp-on-soft:#536275;
+  background:var(--rp-paper);color:var(--rp-ink);
+}
+.rp-dark .rp-phone,.rp-dark .rp-demo-mobile .rp-phone,.rp-story{
+  --rp-navy:#071626; --rp-navy-2:#0c2138; --rp-navy-3:#112c47; --rp-on:#f3f7fb; --rp-on-soft:#9fb3c8;
+  color:var(--rp-on);
+}
+.rp-dark .rp-hero h1 em,.rp-dark .rp-linkbtn,.rp-dark .rp-consent-card a,.rp-dark .rp-example-link,
+.rp-dark .rp-resume b,.rp-dark .rp-faq summary::after,.rp-dark .rp-wrapped-line{color:var(--rp-teal-deep)}
+.rp-dark .rp-consent-card .rp-icon,.rp-dark .rp-opts-text button .rp-icon{color:var(--rp-teal-deep)}
+.rp-dark .rp-who button,.rp-dark .rp-opts button,.rp .rp-dark .rp-say{border-color:rgba(17,36,58,.14);box-shadow:0 1px 2px rgba(17,36,58,.05)}
+.rp-dark .rp-opts button[aria-pressed="true"]{border-color:var(--rp-teal-deep);background:#e3f4f4}
+.rp-dark .rp-steps i{background:rgba(17,36,58,.12)}
+.rp-dark .rp-steps i.on{background:linear-gradient(90deg,var(--rp-teal) 50%,rgba(17,36,58,.12) 50%)}
+.rp-dark .rp-ask{background:#fff;border:1px solid rgba(17,36,58,.08);box-shadow:0 1px 2px rgba(17,36,58,.05)}
+.rp-dark .rp-teal{color:#062027}
+.rp-dark .rp-error{background:#ffe1ce;color:#7a2e0b}
+.rp-dark .rp-lang-pick select{border-color:rgba(17,36,58,.2)}
+.rp-dark .rp-consent-actions{background:var(--rp-paper);box-shadow:0 -12px 18px -8px rgba(248,246,241,.95)}
+.rp-dark .rp-faq details{border:1px solid rgba(17,36,58,.08)}
+.rp-dark .rp-how{border:1px solid rgba(17,36,58,.08)}
+.rp-dark .rp-tabs button{background:var(--rp-navy-3)}
+.rp-dark .rp-resume{border-color:rgba(20,126,137,.35)}
+.rp-dark .rp-nofile{background:rgba(66,197,202,.08)}
+@media (min-width:900px){.rp-at-setup{background:var(--rp-paper)}}
+.rp-stories-again{background:#11243a;color:#f3f7fb}
+
+/* ===== UX review fixes ===== */
+.rp-ladder b{white-space:nowrap}                                   /* "5,99 €" never splits */
+.rp-brand img{width:24px;height:24px;border-radius:7px;display:block}
+.rp-consent-actions{gap:6px;padding:8px 0 10px}
+.rp-consent-actions .rp-yes-hint{margin:0}
+.rp-lang-pick{margin:0 0 4px}
+.rp-demo-note{flex-wrap:wrap;text-align:center;padding:6px 18px 0;line-height:1.35}   /* sample-chat note no longer clipped */
+.rp-convo .rp-linkbtn.rp-skip{text-align:center;color:var(--rp-on-soft);font-weight:600;padding:10px 0}
+.rp-report > .rp-savelink,.rp-report .rp-savelink{margin-top:22px}
+.rp-dark.rp-hero h1 em{color:var(--rp-teal-deep)}
+.rp-dark .rp-demo-btn{color:var(--rp-teal-deep)}
+.rp-dark .rp-reply{color:#fff}
+.rp-dark .rp-consent-actions .rp-linkbtn{color:var(--rp-ink-soft)}
+.rp-email-row .rp-btn{width:auto;flex:0 0 auto}
+.rp-email-row input{flex:1 1 auto;width:100%}
+.rp-email .rp-hint{text-align:center;margin:8px 0 0}

@@ -374,12 +374,11 @@ function ReportFlow() {
             onDragOver={e => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
             onDrop={e => { e.preventDefault(); setDrag(false); onFile(e.dataTransfer.files?.[0]); }}>
             <div className="rp-hero-copy">
-              <a className="rp-brand" href={homePath()}><i />Clarity Chat</a>
+              <a className="rp-brand" href={homePath()}><img src="/assets/icon.png" alt="" width="24" height="24" />Clarity Chat</a>
               {last && <a className="rp-resume" href={`?r=${last.id}`} onClick={() => track("resume_click")}><Clara size={28} mood="soft" /><span>{tr("resumeT", { d: new Date(last.ts).toLocaleDateString(loc(), { day: "numeric", month: "long" }) })}</span><b>{tr("resumeBtn")} →</b></a>}
               <div className="rp-hello"><Clara size={64} /><span>{tr("hello1")}<br />{tr("hello2")}</span></div>
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
-              {new Date() < new Date(2027, 0, 1) && <p className="rp-wrapped-line">{tr("wrappedLine")}</p>}
               {inApp && <div className="rp-inapp" role="note">{tr("inAppT")}
                 <div className="rp-inapp-actions">
                   {/Android/i.test(navigator.userAgent) && <a className="rp-btn rp-main" href={`intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;end`}>{tr("inAppOpen")}</a>}
@@ -396,6 +395,7 @@ function ReportFlow() {
               <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>{tr("demoBtn")}</button>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
+              <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
               <div className="rp-how">
                 <p className="rp-how-h">{tr("howHead")}</p>
                 <div className="rp-tabs" role="tablist">
@@ -409,7 +409,6 @@ function ReportFlow() {
               </div>
               <div className="rp-trust"><span>{tr("trustFree")}</span><span>{tr("trustTime")}</span><span>{tr("trustPrivate")}</span></div>
               <a className="rp-example-link" href={exampleHref()} onClick={() => track("sample_open", { from: "landing" })}>{tr("seeExample")}</a>
-              <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
               <p className="rp-lock">{tr("lock")}</p>
               <section className="rp-faq">
                 <h2>{tr("faqTitle")}</h2>
@@ -681,7 +680,9 @@ function Setup(p: {
         {q === 1 ? <>
           {chips(WORRIES[p.relation] ?? WORRIES_LOVE, p.question, p.setQuestion)}
           {free(p.question, p.setQuestion, tr("sayWorry"))}
-          <button className="rp-btn rp-teal" onClick={() => { setQ(2); track("setup_worry", { value: p.question ? "answered" : "skipped" }); }}>{p.question ? tr("next") : tr("ratherNot")}</button>
+          {p.question
+            ? <button className="rp-btn rp-teal" onClick={() => { setQ(2); track("setup_worry", { value: "answered" }); }}>{tr("next")}</button>
+            : <button className="rp-linkbtn rp-skip" onClick={() => { setQ(2); track("setup_worry", { value: "skipped" }); }}>{tr("ratherNot")}</button>}
         </> : (p.question ? <Reply text={p.question} /> : <Reply text={tr("ratherNot")} />)}
       </>}
 

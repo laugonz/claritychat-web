@@ -6,7 +6,6 @@ import { Clara } from "./Mascot";
 import { StoryVisual } from "./StoryVisual";
 import type { Story } from "./stories";
 import { claraName, loc, tr } from "./i18n";
-import { exampleHref } from "./examples";
 
 export type Chapter = {
   id: string; emoji?: string; title: string; body?: string; locked?: boolean; message_suggestion?: string | null;
@@ -345,7 +344,6 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
       {showExSticky && <div className="rp-sticky-pay"><a className="rp-btn rp-main" href={ctaHref}>{tr("exCta")} · {tr("exCtaFree")}</a></div>}
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
-      {!example && <SaveLink />}
       <p className="rp-verdict"><Rich text={report.verdict} /></p>
       {report.safety?.concern && <div className="rp-safety">{report.safety.note && <p>{report.safety.note}</p>}<p><b>{tr("helpTitle")}:</b> {tr("helpLines")}</p></div>}
       {locked ? (
@@ -360,15 +358,14 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
             <h3>{tr("r_keepReading")}</h3>
             <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i > 0 && (c.teaser || WHY[c.id]) ? <small>{c.teaser ?? tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
             {question && ansIdx > 0 && <p className="rp-answer-in">{tr("r_answerIn", { q: question.split(" · ")[0], n: ansIdx + 1 })}</p>}
-            <div className="rp-price"><strong>{tr("r_price")}</strong></div>
             <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button>
             <p className="rp-hint rp-waiver">{tr("r_waiver")}</p>
             {payNote && !payError && <p className="rp-pay-note" role="status">{payNote}</p>}
             {payError && <p className="rp-error" role="alert">{payError}</p>}
             <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_payNote")}</p>
             {onEmail && <EmailMe onEmail={onEmail} />}
-            <a className="rp-example-link rp-example-paywall" href={exampleHref()}>{tr("seeExample")}</a>
           </div>
+          {!example && <SaveLink />}
         </>
       ) : (
         <>
@@ -381,6 +378,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
                 <button onClick={() => navigator.clipboard?.writeText(c.message_suggestion ?? "").catch(() => {})}>{tr("r_copy")}</button></div>}
             </article>
           ))}
+          {!example && <SaveLink />}
           <div className="rp-signoff"><Clara size={56} mood="soft" /><span><b>— {claraName()}</b><br />{tr("r_signoff")}</span></div>
           {report.follow_ups?.length ? (
             <section className="rp-chapter">
