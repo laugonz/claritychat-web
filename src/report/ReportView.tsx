@@ -273,6 +273,24 @@ export function SaveLink({ text }: { text?: string } = {}) {
 const WHY: Record<string, string> = { who_gives: "r_lockWhy_who_gives", signals: "r_lockWhy_signals", language: "r_lockWhy_language", unsaid: "r_lockWhy_unsaid", next: "r_lockWhy_next" };
 
 /** Free part of chapter 1: first paragraph → 2–3 real messages from the key moment (proof Clara read YOUR chat) → second paragraph, fading out. */
+/** "Not now? I'll email you the link": one field, folded until asked for. The address is only used for that email. */
+function EmailMe({ onEmail }: { onEmail: (email: string) => Promise<boolean> }) {
+  const [open, setOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  if (state === "sent") return <p className="rp-email-sent" role="status">{tr("emailSent")}</p>;
+  if (!open) return <button className="rp-linkbtn rp-email-ask" onClick={() => setOpen(true)}>{tr("emailAsk")}</button>;
+  return (
+    <form className="rp-email" onSubmit={async e => { e.preventDefault(); setState("sending"); setState((await onEmail(email)) ? "sent" : "error"); }}>
+      <div className="rp-email-row">
+        <input type="email" required autoComplete="email" inputMode="email" placeholder={tr("emailPh")} value={email} onChange={e => setEmail(e.target.value)} />
+        <button className="rp-btn" type="submit" disabled={state === "sending"}>{tr("emailSend")}</button>
+      </div>
+      <p className="rp-hint">{state === "error" ? tr("emailErr") : tr("emailNote")}</p>
+    </form>
+  );
+}
+
 function FreePart({ c, viz, head }: { c: Chapter; viz: Viz | null; head: ReactNode }) {
   const ps = paras(c.body);
   return (
@@ -309,9 +327,10 @@ function useStickyPay(active: boolean, target = ".rp-paywall .rp-main") {
   return active && show;
 }
 
-export function ReportView({ report, viz, counts, onPay, paying, payError, payNote, example, ctaHref, question, relation }: {
+export function ReportView({ report, viz, counts, onPay, paying, payError, payNote, onEmail, example, ctaHref, question, relation }: {
   report: Report; viz: Viz | null; counts?: Record<string, Record<string, number>>;
-  onPay: () => void; paying: boolean; payError?: string; payNote?: string; example?: boolean; ctaHref?: string; question?: string; relation?: string;
+  onPay: () => void; paying: boolean; payError?: string; payNote?: string; onEmail?: (email: string) => Promise<boolean>;
+  example?: boolean; ctaHref?: string; question?: string; relation?: string;
 }) {
   const ansIdx = report.answer_chapter ? report.chapters.findIndex(c => c.id === report.answer_chapter) : -1;
   const locked = report.chapters.some(c => c.locked);
@@ -331,7 +350,10 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
       {report.safety?.concern && <div className="rp-safety">{report.safety.note && <p>{report.safety.note}</p>}<p><b>{tr("helpTitle")}:</b> {tr("helpLines")}</p></div>}
       {locked ? (
         <>
-          <FreePart c={report.chapters[0]} viz={viz} head={chapterHead(report.chapters[0], 0)} />
+          {report.chapters[0].key_exchange?.length || report.chapters[0].moments?.length
+            // The whole first chapter is free (newer reports): show it exactly as it reads once paid.
+            ? <article className="rp-chapter">{chapterHead(report.chapters[0], 0)}<Body c={report.chapters[0]} i={0} viz={viz} counts={counts} /></article>
+            : <FreePart c={report.chapters[0]} viz={viz} head={chapterHead(report.chapters[0], 0)} />}
           <div className="rp-ghost-text" aria-hidden="true">{[96, 88, 92, 70, 94, 85, 60].map((w, k) => <i key={k} style={{ width: `${w}%` }} />)}</div>
           <div className="rp-paywall">
             {report.hook && <p className="rp-hook"><Rich text={report.hook} /></p>}
@@ -344,6 +366,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
             {payNote && !payError && <p className="rp-pay-note" role="status">{payNote}</p>}
             {payError && <p className="rp-error" role="alert">{payError}</p>}
             <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_payNote")}</p>
+            {onEmail && <EmailMe onEmail={onEmail} />}
             <a className="rp-example-link rp-example-paywall" href={exampleHref()}>{tr("seeExample")}</a>
           </div>
         </>

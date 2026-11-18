@@ -15,6 +15,10 @@ const RELATIONS: [string, string][] = [["💘", "partner"], ["💔", "ex"], ["�
 const relLabel = (id: string) => (id ? tr(`rel_${id}`) : "");
 const API = ((import.meta as unknown as { env?: Record<string, string> }).env?.VITE_REPORT_API) || "https://api.emotions-detector.com";
 // Anonymous funnel events → our server (steps and coarse numbers only; never chat content or names).
+// Language the report is WRITTEN in: the page's by default, changeable on the consent step.
+const REPORT_LANGS: [string, string][] = [["es", "Español"], ["en", "English"], ["fr", "Français"], ["de", "Deutsch"], ["it", "Italiano"], ["pt", "Português"], ["pl", "Polski"]];
+let reportLang = "";
+
 const SID = (() => { try { let v = sessionStorage.getItem("rp-sid"); if (!v) { v = Math.random().toString(36).slice(2, 14); sessionStorage.setItem("rp-sid", v); } return v; } catch { return Math.random().toString(36).slice(2, 14); } })();
 // Our own tests: open any page once with ?internal=1 and the whole session is tagged (no Telegram pings).
 const INTERNAL = (() => { try { if (typeof location !== "undefined" && new URLSearchParams(location.search).get("internal") === "1") sessionStorage.setItem("rp-int", "1"); return sessionStorage.getItem("rp-int") === "1"; } catch { return false; } })();
@@ -82,6 +86,10 @@ function ReportFlow() {
   const demoRef = useRef(false);
   useEffect(() => { at(demoRef.current ? `demo_${step}` : step); }, [step]);
   const [os, setOs] = useState<"ios" | "android" | "desktop">("ios");
+  // Instagram / Facebook / TikTok in-app browsers: file pickers and Apple Pay often fail there.
+  const [inApp, setInApp] = useState(false);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => { setInApp(/Instagram|FBAN|FBAV|FB_IAB|musical_ly|BytedanceWebview|TikTok/i.test(navigator.userAgent)); }, []);
   const [drag, setDrag] = useState(false);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -197,7 +205,7 @@ function ReportFlow() {
     if (!chat || !stats || !(given ?? consent) || (reportId && !retry)) return;
     const v = { ...buildViz(stats, me), stories: buildStories(stats, me) }; setViz(v);
     const sample = sampleChat(chat, stats);
-    const lang = (document.documentElement.lang || "es").slice(0, 2);
+    const lang = reportLang || pageLang();
     const fmt = (d: Date) => d.toLocaleDateString(loc(), { day: "numeric", month: "long", year: "numeric" });
     try {
       const r = await fetch(`${API}/chat/report`, {
@@ -283,6 +291,14 @@ function ReportFlow() {
     return () => cancelAnimationFrame(raf);
   }, [payNote, report]);
 
+  async function sendLink(email: string): Promise<boolean> {
+    try {
+      const r = await fetch(`${API}/chat/report/${reportId}/email`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email }) });
+      if (r.ok) track("faq_open", { from: "email_link" });
+      return r.ok;
+    } catch { return false; }
+  }
+
   async function pay() {
     at("stripe");
     setPaying(true); setPayError(""); track("checkout_click");
@@ -364,6 +380,11 @@ function ReportFlow() {
               <h1>{tr("h1a")}<em>{tr("h1em")}</em>{tr("h1b")}</h1>
               <p className="rp-muted">{tr("lead")}</p>
               {new Date() < new Date(2027, 0, 1) && <p className="rp-wrapped-line">{tr("wrappedLine")}</p>}
+              {inApp && <div className="rp-inapp" role="note">{tr("inAppT")}
+                <div className="rp-inapp-actions">
+                  {/Android/i.test(navigator.userAgent) && <a className="rp-btn rp-main" href={`intent://${location.host}${location.pathname}${location.search}#Intent;scheme=https;package=com.android.chrome;end`}>{tr("inAppOpen")}</a>}
+                  <button className="rp-btn" onClick={() => { navigator.clipboard?.writeText(location.href).then(() => setCopied(true)).catch(() => {}); }}>{copied ? tr("inAppCopied") : tr("inAppCopy")}</button>
+                </div></div>}
               <input ref={fileRef} type="file" accept=".zip,.txt,application/zip,application/x-zip-compressed,text/plain" hidden onChange={e => onFile(e.target.files?.[0])} />
               <button className="rp-btn rp-main" disabled={busy} onClick={() => { track("upload_click"); at("file_picker"); setTimeout(() => { picking.current = true; }, 300); fileRef.current?.click(); }}>{busy ? tr("reading") : tr("upload")}</button>
               <p className="rp-drop-hint">{tr("dropHint")}</p>
@@ -417,7 +438,7 @@ function ReportFlow() {
           <section className="rp-screen rp-pad rp-letter">
             {report && (stats || viz?.stories?.length) ? <button className="rp-stories-again" onClick={() => setStep("stories")}>{tr("seeStories")}</button> : null}
             {finishing ? <WaitScreen lines={[tr("finishing")]} paid />
-              : shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} payNote={payNote} question={question} relation={relation} />
+              : shown ? <ReportView report={shown} viz={viz} counts={counts} onPay={pay} paying={paying} payError={payError} payNote={payNote} onEmail={sendLink} question={question} relation={relation} />
               : reportError ? <><h1>{tr("oops")}</h1><p className="rp-error" role="alert">{reportError}</p>
                   {stats && chat && <button className="rp-btn rp-main" onClick={() => { setReportError(""); setReportId(""); startReport(true, true); }}>{tr("retry")}</button>}</>
               : demo && stats ? <>
@@ -617,6 +638,7 @@ function Setup(p: {
   question: string; setQuestion: (v: string) => void; context: string; setContext: (v: string) => void;
   email: string; setEmail: (v: string) => void; consent: boolean; setConsent: (v: boolean) => void; onDone: (given: boolean) => void; short?: boolean;
 }) {
+  const [rl, setRl] = useState(() => reportLang || pageLang());
   const [q, setQ] = useState(0);              // current step: 0 relation · 1 worry · 2 outside · 3 consent
   const [typing, setTyping] = useState(false);
   // A random example report each time (written examples, not AI, not the user's chat).
@@ -704,6 +726,11 @@ function Setup(p: {
           </details>
         </div></div>
         <div className="rp-consent-actions">
+          <label className="rp-lang-pick">{tr("reportLang")}
+            <select value={rl} onChange={e => { reportLang = e.target.value; setRl(e.target.value); }}>
+              {REPORT_LANGS.map(([v, n]) => <option key={v} value={v}>{n}</option>)}
+            </select>
+          </label>
           <button className="rp-btn rp-main" onClick={() => decide(true)}><Icon name="check" />{tr("consentYes")}</button>
           <p className="rp-yes-hint">{tr("consentYesHint")}</p>
           <button className="rp-linkbtn" onClick={() => decide(false)}>{tr("statsOnly")}</button>

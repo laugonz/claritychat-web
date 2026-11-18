@@ -454,3 +454,16 @@
 
 .rp-pay-note{background:#e3f4ef;color:#145244;border-radius:12px;padding:12px;margin:10px 0 0;font-size:14.5px;text-align:center}
 .rp-sticky-pay a.rp-btn{text-decoration:none;display:flex;align-items:center;justify-content:center}
+.rp-email-ask{display:block;margin:14px auto 0;font-size:14.5px}
+.rp-email{margin:14px 0 0}
+.rp-email-row{display:flex;gap:8px}
+.rp-email-row input{flex:1;min-width:0;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;border:1px solid rgba(17,36,58,.2);background:#fff;color:#11243a}
+.rp-email-row .rp-btn{flex:none;padding:12px 18px;background:#11243a;color:#fff}
+.rp-email-sent{margin:14px 0 0;text-align:center;font-size:14.5px;color:#145244}
+.rp-inapp{background:#fff4e5;color:#5a3410;border-radius:14px;padding:14px;margin:0 0 14px;font-size:14.5px;line-height:1.45}
+.rp-inapp-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rp-inapp-actions .rp-btn{padding:10px 16px;font-size:14.5px;text-decoration:none}
+.rp-email-ask.rp-linkbtn{width:100%;text-align:center}
+.rp-lang-pick{display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--rp-on-soft);margin:0 0 12px}
+.rp-lang-pick select{font:inherit;font-size:14px;padding:6px 10px;border-radius:10px;border:1px solid rgba(255,255,255,.25);background:transparent;color:inherit}
+.rp-lang-pick option{color:#11243a}
