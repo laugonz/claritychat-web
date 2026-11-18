@@ -516,3 +516,8 @@
 .rp-email-row .rp-btn{width:auto;flex:0 0 auto}
 .rp-email-row input{flex:1 1 auto;width:100%}
 .rp-email .rp-hint{text-align:center;margin:8px 0 0}
+.rp-wall-eyebrow{margin:0 0 6px}
+.rp-hook.rp-hook-head{font-family:var(--rp-display);font-style:normal;font-size:22px;line-height:1.25;font-weight:700;margin:0 0 12px;letter-spacing:-.01em}
+.rp-tag{display:inline-block;margin-left:6px;font-style:normal;font-size:11px;font-weight:700;color:var(--rp-teal-deep);background:#e3f4f4;border-radius:99px;padding:2px 8px;vertical-align:middle}
+.rp-paywall .rp-waiver{font-size:13px;color:var(--rp-ink-soft)}
+.rp-paywall .rp-email-ask{margin-top:22px;font-weight:600;color:var(--rp-ink-soft)}

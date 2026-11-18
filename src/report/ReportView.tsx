@@ -177,6 +177,11 @@ function Body({ c, i, viz, counts }: { c: Chapter; i: number; viz: Viz | null; c
       return m ? <div key={k} className="rp-opt"><b>{tr("r_option", { n: m[1] })}</b><Rich text={m[2]} /></div> : <p key={k}><Rich text={p} /></p>;
     })}</div>;
   }
+  // Story opening in medias res: paragraph 1, the charged real exchange, two more paragraphs, then the timeline + key moment.
+  if ((c.id === "story" || i === 0) && c.opening_exchange?.length) {
+    return <div className="rp-prose">{ps[0] && <p><Rich text={ps[0]} /></p>}<Exchange msgs={c.opening_exchange.slice(0, 3)} me={viz?.me ?? ""} />
+      {ps.slice(1, 3).map((p, k) => <p key={k}><Rich text={p} /></p>)}{visual}{ps.slice(3).map((p, k) => <p key={`r${k}`}><Rich text={p} /></p>)}</div>;
+  }
   return <div className="rp-prose">{ps[0] && <p><Rich text={ps[0]} /></p>}{visual}{ps.slice(1).map((p, k) => <p key={k}><Rich text={p} /></p>)}</div>;
 }
 
@@ -340,7 +345,7 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
   const chapterHead = (c: Chapter, i: number) => <h2><span className="rp-n">{String(i + 1).padStart(2, "0")}</span><span>{c.emoji} {c.title}</span></h2>;
   return (
     <div className="rp-report">
-      {showSticky && <div className="rp-sticky-pay"><button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button></div>}
+      {showSticky && <div className="rp-sticky-pay"><button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlockShort")}</button></div>}
       {showExSticky && <div className="rp-sticky-pay"><a className="rp-btn rp-main" href={ctaHref}>{tr("exCta")} · {tr("exCtaFree")}</a></div>}
       <div className="rp-report-hello"><Clara size={44} mood="soft" /><div className="rp-eyebrow">{tr("r_yourReport")}{viz ? ` · ${first(viz.me)} ${tr("r_and")} ${first(viz.other)}` : ""}</div></div>
       <h1>{report.title}</h1>
@@ -354,16 +359,19 @@ export function ReportView({ report, viz, counts, onPay, paying, payError, payNo
             : <FreePart c={report.chapters[0]} viz={viz} head={chapterHead(report.chapters[0], 0)} />}
           <div className="rp-ghost-text" aria-hidden="true">{[96, 88, 92, 70, 94, 85, 60].map((w, k) => <i key={k} style={{ width: `${w}%` }} />)}</div>
           <div className="rp-paywall">
-            {report.hook && <p className="rp-hook"><Rich text={report.hook} /></p>}
-            <h3>{tr("r_keepReading")}</h3>
-            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i > 0 && (c.teaser || WHY[c.id]) ? <small>{c.teaser ?? tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
+            {report.safety?.concern || !report.hook
+              // Safety mode (or no hook): calm, no suspense.
+              ? <>{report.hook && <p className="rp-hook"><Rich text={report.hook} /></p>}<h3>{tr(report.safety?.concern ? "r_restOfReport" : "r_keepReading")}</h3></>
+              : <><div className="rp-eyebrow rp-wall-eyebrow">{tr("r_keepReading")}</div><h3 className="rp-hook rp-hook-head"><Rich text={report.hook} /></h3></>}
             {question && ansIdx > 0 && <p className="rp-answer-in">{tr("r_answerIn", { q: question.split(" · ")[0], n: ansIdx + 1 })}</p>}
+            <ol className="rp-locked">{report.chapters.map((c, i) => <li key={i} className={i === 0 ? "read" : ""}><span className="e">{String(i + 1).padStart(2, "0")}</span><span>{c.title}{i === ansIdx && question && ansIdx > 0 && !report.safety?.concern ? <em className="rp-tag">{tr("r_answerHere")}</em> : null}{i > 0 && (c.teaser || WHY[c.id]) ? <small>{c.teaser ?? tr(WHY[c.id])}</small> : null}</span>{i > 0 ? lockIcon : <span className="rp-read">{tr("r_readingNow")}</span>}</li>)}</ol>
             <button className="rp-btn rp-main" onClick={onPay} disabled={paying}>{paying ? tr("r_openingPay") : tr("r_unlock", { n: report.chapters.length - 1 })}</button>
             <p className="rp-hint rp-waiver">{tr("r_waiver")}</p>
             {payNote && !payError && <p className="rp-pay-note" role="status">{payNote}</p>}
             {payError && <p className="rp-error" role="alert">{payError}</p>}
             <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_payNote")}</p>
-            {onEmail && <EmailMe onEmail={onEmail} />}
+            <p className="rp-hint" style={{ textAlign: "center" }}>{tr("r_privacy")}</p>
+            {onEmail && !report.safety?.concern && <EmailMe onEmail={onEmail} />}
           </div>
           {!example && <SaveLink />}
         </>
