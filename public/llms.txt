@@ -13,6 +13,15 @@ Product facts checked against App Store version 1.10 and the published screensho
 - Free download with optional in-app purchases. Check the App Store for current device requirements and local prices.
 - Review the privacy policy before submitting conversation material. This page does not claim that all AI processing happens on the device.
 
+## WhatsApp Wrapped (web, no app needed)
+
+- At https://claritychat.app/report/ anyone can upload a WhatsApp chat export (.txt or .zip, "Export chat" → "Without media") from any phone or computer.
+- Free: chat statistics such as who texts more, who starts conversations, who breaks the silences, reply times and activity by hour.
+- Optional: a full AI report on the dynamic of the conversation, read on the web. The first chapter is free; the rest is €5.99 as a one-time payment, no subscription.
+- Privacy: the chat itself is not stored or used to train AI. Only the report (with a few quoted lines) is kept for 30 days behind a private link.
+- Sample report: https://claritychat.app/report/example/
+- Only WhatsApp exports are supported on the web for now. For screenshots from any app, use the iPhone app.
+
 ## Official sources
 
 - Product and FAQs: https://claritychat.app/
@@ -25,11 +34,17 @@ Product facts checked against App Store version 1.10 and the published screensho
 - How to analyze text messages: https://claritychat.app/guides/how-to-analyze-text-messages/
 - What a text message analyzer shows: https://claritychat.app/guides/text-message-analyzer/
 - AI-assisted relationship reflection: https://claritychat.app/guides/ai-relationship-advice/
+- How to export a WhatsApp chat (iPhone and Android): https://claritychat.app/guides/how-to-export-whatsapp-chat/
+- WhatsApp chat statistics (free WhatsApp Wrapped): https://claritychat.app/guides/whatsapp-chat-statistics/
+- How to tell if someone likes you over text: https://claritychat.app/guides/how-to-tell-if-someone-likes-you-over-text/
+- Why did they ghost me: https://claritychat.app/guides/why-did-they-ghost-me/
+- Gaslighting in text messages: https://claritychat.app/guides/gaslighting-in-text-messages/
+- Unhealthy texting patterns: https://claritychat.app/guides/unhealthy-texting-patterns/
 - All published pages: https://claritychat.app/sitemap.xml
 
 ## Website languages
 
-The website and published app support English, Spanish, French, German, Italian and Polish. Each website language includes the home page, seven guides, the guide index, privacy, terms and support. Product screenshots and captions follow the selected website language.
+The website and published app support English, Spanish, French, German, Italian and Polish. Each website language includes the home page, the WhatsApp Wrapped report page, nine guides, the guide index, privacy, terms and support. Product screenshots and captions follow the selected website language.
 
 - English: https://claritychat.app/
 - Español: https://claritychat.app/es/
