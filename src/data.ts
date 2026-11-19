@@ -37,7 +37,7 @@ export type Guide = {
   reviewed?: string;
   readTime: string;
   featureImage: { src: string; alt: string; width: number; height: number };
-  screenshot: { src: string; alt: string; caption: string; width: number; height: number };
+  screenshot?: { src: string; alt: string; caption: string; width: number; height: number };
   sections: GuideSection[];
   faq: Faq[];
   related: string[];
@@ -240,7 +240,7 @@ export const guides: Guide[] = [
           "Use enough consecutive messages to preserve the question, response and aftermath. In Clarity Chat that usually means two to four readable screenshots rather than unrelated highlights.",
       },
     ],
-    related: ["text-message-analyzer", "ai-relationship-advice", "unhealthy-texting-patterns"],
+    related: ["whatsapp-chat-statistics", "text-message-analyzer", "ai-relationship-advice"],
   },
   {
     slug: "ai-relationship-advice",
@@ -765,6 +765,197 @@ export const guides: Guide[] = [
       },
     ],
     related: ["gaslighting-in-text-messages", "how-to-analyze-text-messages", "why-did-they-ghost-me"],
+  },  {
+    slug: "how-to-export-whatsapp-chat",
+    productAnswer: "Once you have the exported file, you can upload it at claritychat.app/report/ to see your chat in numbers for free: who texts more, who starts, reply times and the longest silences. The stats are calculated in your browser, so the chat stays on your device.",
+    reviewed: "2026-11-19",
+    keyword: "export WhatsApp chat",
+    title: "How to Export a WhatsApp Chat on iPhone and Android",
+    description:
+      "Step by step: export a WhatsApp chat as a .zip or .txt file on iPhone or Android, choose with or without media, and fix the most common problems.",
+    h1: "How to export a WhatsApp chat on iPhone and Android",
+    intro:
+      "WhatsApp can turn any individual or group chat into a file you keep. On iPhone you get a .zip with a _chat.txt inside; on Android you usually get a .txt, or a .zip if you include media. The whole process takes less than a minute, and the file is a plain-text copy of the conversation with a date, a time and a name on every line.",
+    readTime: "5 min read",
+    featureImage: {
+      src: "/assets/og/og-report-en.jpg",
+      alt: "Three cards showing WhatsApp chat statistics: days talking, silences broken and who texts more",
+      width: 1200,
+      height: 630,
+    },
+    howTo: {
+      name: "Export a WhatsApp chat in four steps",
+      steps: [
+        "Open WhatsApp and go into the chat you want to save.",
+        "On iPhone, tap the contact or group name at the top. On Android, tap the three dots in the top corner, then More.",
+        "Tap Export chat and choose Without media unless you really need the photos and audio.",
+        "Pick where the file goes: Save to Files, Google Drive, email or another app.",
+      ],
+    },
+    sections: [
+      {
+        h2: "Export a chat on iPhone",
+        paras: [
+          "Open the conversation and tap the person's name or the group name at the top of the screen. Scroll down to the bottom of the contact info and tap Export Chat. WhatsApp asks whether to attach media or not. Choose Without Media for a small file that is quick to share; Attach Media adds the photos, videos and voice notes and can make the file very large.",
+          "The share sheet opens next. Save to Files keeps a copy on your iPhone or in iCloud Drive. You can also send it to yourself by email or AirDrop. The file is a .zip called something like WhatsApp Chat with the person's name, and inside it there is a file named _chat.txt with the messages.",
+        ],
+      },
+      {
+        h2: "Export a chat on Android",
+        paras: [
+          "Open the conversation, tap the three dots in the top right corner, tap More and then Export chat. Choose Without media or Include media. Android then shows the apps you can send the file to: Google Drive, Gmail, a file manager or a messaging app.",
+          "Without media, Android usually produces a single .txt file. With media, you get a .zip or several attachments. Menu names can vary slightly with your phone's language and WhatsApp version, but Export chat is always under the chat's own menu, not in the general settings.",
+        ],
+      },
+      {
+        h2: "With or without media?",
+        paras: [
+          "For reading, searching or analyzing a conversation, Without media is almost always the better choice. The text file stays small, uploads fast and still marks where a photo, audio or sticker was sent, so nothing about the rhythm of the chat is lost. Include media only when you want to keep the pictures themselves.",
+          "Very long chats can be shortened by WhatsApp when exported, especially with media, keeping the most recent messages. If the first line of the file is much later than when you started talking, that is the likely reason. Exporting without media usually keeps more history.",
+        ],
+        bullets: [
+          "Without media: one small .txt (inside a .zip on iPhone), fastest option.",
+          "With media: much bigger file, photos and voice notes included.",
+          "Either way, deleted messages and disappearing messages are not in the export.",
+        ],
+      },
+      {
+        h2: "What the file looks like",
+        paras: [
+          "Each message is one line that starts with the date and time, then the name, then the text, for example <em>[12/03/24, 21:05:11] Ana: are we still on for Friday?</em> Messages with line breaks continue on the next lines. Calls, deleted messages and media appear as short notes such as \"image omitted\". The date format follows your phone's language and region settings.",
+          "Because it is plain text, you can open it with any notes or text app. Treat it with the same care as the chat itself: it contains everything both people wrote, so only share it with tools and people you trust, and only export conversations you are part of.",
+        ],
+      },
+      {
+        h2: "Common problems and fixes",
+        paras: [
+          "Most failed uploads come from picking the wrong file. A screenshot, a PDF or a backup from another app is not the same as the export. If a tool says it only sees one person, check that you exported the individual chat and not a broadcast list or your own notes. If you exported a group chat, remember that most analysis tools expect a one-to-one conversation.",
+        ],
+        steps: [
+          "Can't find Export chat: update WhatsApp and open the menu from inside the chat, not from the chat list.",
+          "The file is huge: export again choosing Without media.",
+          "It opens as a folder on iPhone: upload the .zip itself, or the _chat.txt inside it.",
+          "The history looks cut short: very long chats may only include the most recent messages.",
+        ],
+      },
+      {
+        h2: "What you can do with the export",
+        paras: [
+          "An export is the only way to see a whole conversation at once instead of scrolling for hours. With the file you can search old messages, keep a record of something important or turn the chat into statistics. At <a href=\"/report/\">claritychat.app/report/</a> you can upload it and see, for free and in about 30 seconds, who writes more, who usually starts, how fast each person replies, the busiest day and who broke the longest silences.",
+          "The numbers are calculated in your browser and the chat is not uploaded to a server. If you want more than numbers, you can choose to get a written report about what is going on in the conversation; only then is a selection of messages read by the AI.",
+        ],
+        callout: "Export the chat without media, then drop the file into Clarity Chat to see your WhatsApp chat in numbers.",
+      },
+    ],
+    faq: [
+      {
+        question: "Does the other person know I exported the chat?",
+        answer:
+          "No. WhatsApp does not notify the other person when you export a conversation. Because the file contains their messages too, treat it as private and do not share it without a good reason.",
+      },
+      {
+        question: "Can I export a WhatsApp chat from the computer?",
+        answer:
+          "Export chat is a phone feature. Export on your iPhone or Android, then send the file to your computer by email, AirDrop, Google Drive or a cable.",
+      },
+      {
+        question: "Why is my exported WhatsApp chat incomplete?",
+        answer:
+          "Very long chats can be shortened to the most recent messages, especially when media is included, and deleted or disappearing messages are never exported. Try again choosing Without media.",
+      },
+    ],
+    related: ["whatsapp-chat-statistics", "how-to-analyze-text-messages", "text-message-analyzer"],
+  },
+  {
+    slug: "whatsapp-chat-statistics",
+    productAnswer: "Clarity Chat turns an exported WhatsApp chat into statistics for free at claritychat.app/report/: messages per person, who starts conversations, reply times, the longest silences and who broke them, busiest days and hours. The numbers are calculated in your browser. An optional written report (5.99 €, one-time) explains what the numbers mean.",
+    reviewed: "2026-11-19",
+    keyword: "WhatsApp chat statistics",
+    title: "WhatsApp Chat Statistics: Who Texts More, Who Starts, Who Breaks the Silence",
+    description:
+      "See your WhatsApp chat statistics for free: messages per person, who starts, reply times, silences and busiest hours, and how to read them calmly.",
+    h1: "WhatsApp chat statistics: your chat in numbers",
+    intro:
+      "WhatsApp does not show statistics for a conversation, but the exported chat contains everything needed to calculate them: every message has a date, a time and a name. From that you can see who writes more, who usually starts, how quickly each person replies and who breaks the silences. It is the idea behind a WhatsApp Wrapped: your chat's year, in numbers.",
+    readTime: "6 min read",
+    featureImage: {
+      src: "/assets/og/og-report-en.jpg",
+      alt: "WhatsApp chat statistics cards showing 515 days talking, 4 of 5 silences broken and 62% of the messages",
+      width: 1200,
+      height: 630,
+    },
+    howTo: {
+      name: "Get your WhatsApp chat statistics",
+      steps: [
+        "Open the chat in WhatsApp and choose Export chat, Without media.",
+        "Save the .zip or .txt file on your phone or computer.",
+        "Open claritychat.app/report/ and upload the file.",
+        "Pick which name is yours and read your stats, ready in about 30 seconds.",
+      ],
+    },
+    sections: [
+      {
+        h2: "What numbers a WhatsApp chat can give you",
+        paras: [
+          "Once a chat is exported, every line can be counted. Some numbers are simple totals; others say something about the rhythm of the relationship. These are the ones Clarity Chat calculates for a one-to-one conversation:",
+        ],
+        bullets: [
+          "Messages and words per person, and each person's share of the chat.",
+          "Who starts a conversation after a pause of several hours, and who usually has the last word.",
+          "Typical reply time for each person, and how it changes month by month.",
+          "The longest silences, how many days they lasted and who wrote first to break them.",
+          "The busiest day, the longest streak of consecutive days, favorite hours and how much happens after 10 pm (22:00).",
+          "Most used emojis and words, laughs, calls and the first time someone wrote I love you.",
+        ],
+      },
+      {
+        h2: "How to get them for free",
+        paras: [
+          "First export the chat: open it in WhatsApp, tap the name (iPhone) or the three dots and More (Android), then Export chat and Without media. Our <a href=\"/guides/how-to-export-whatsapp-chat/\">step-by-step export guide</a> covers both phones and the usual problems.",
+          "Then open <a href=\"/report/\">claritychat.app/report/</a> and upload the file. The statistics are calculated in your browser, so the conversation itself is not sent anywhere. You get them as a set of story-style cards you can flip through and, if you like, save as an image to share without the messages.",
+        ],
+        callout: "Upload your exported chat and see who texts more, who starts and who breaks the silences, in 30 seconds and for free.",
+      },
+      {
+        h2: "Reading the numbers without overthinking",
+        paras: [
+          "Statistics are honest about what happened in the chat and silent about why. If one person sends 62% of the messages, that may mean they care more, or that they write in five short bursts while the other sends one long paragraph. Look at words per message next to the message count before drawing conclusions.",
+          "The same goes for timing. A slow reply time can reflect work shifts, time zones or a habit of answering at night. Changes are usually more telling than levels: a reply time that triples in one month, or a person who used to start most conversations and stopped, is worth noticing. Calls and time spent together are not in the chat, so a quiet week may simply be a week you saw each other.",
+        ],
+      },
+      {
+        h2: "Silences and who breaks them",
+        paras: [
+          "Long silences are often the most interesting part of a chat. They mark arguments, busy periods, trips or the moment something cooled down. Who writes first afterwards says something about who carries the effort of reconnecting, especially when it is always the same person.",
+          "One silence means little on its own. A pattern across many silences, or a silence that starts right after a plan or an important message, is the kind of thing worth a closer look.",
+        ],
+      },
+      {
+        h2: "When numbers are not enough",
+        paras: [
+          "Numbers can show that something changed but not what was said when it did. If you want that part, Clarity Chat can write a report on what is really going on in the conversation, quoting the actual messages and the dates where things shifted. The beginning of the report is free and the full report costs 5.99 €, paid once. Only for that report is a selection of text messages read by the AI; photos, audio and phone numbers are never sent, and the report is kept behind a private link for 30 days.",
+          "Whichever you use, treat the result as a second look at the chat, not a verdict about the other person. If a conversation makes you feel unsafe, talk to someone you trust or a support service rather than relying on statistics.",
+        ],
+      },
+    ],
+    faq: [
+      {
+        question: "Does WhatsApp have built-in chat statistics?",
+        answer:
+          "No. WhatsApp only shows storage used per chat. To see who writes more or reply times you need to export the chat and use a tool that reads the file.",
+      },
+      {
+        question: "Is there a WhatsApp Wrapped for 2026?",
+        answer:
+          "WhatsApp does not make one, but you can create your own: export the chat and upload it to claritychat.app/report/ to see your conversation's numbers as story cards, free.",
+      },
+      {
+        question: "Do the statistics work for group chats?",
+        answer:
+          "Clarity Chat is built for conversations between two people. For a group, export the individual chat with the person you are interested in.",
+      },
+    ],
+    related: ["how-to-export-whatsapp-chat", "how-to-analyze-text-messages", "how-to-tell-if-someone-likes-you-over-text"],
   },
 ];
 

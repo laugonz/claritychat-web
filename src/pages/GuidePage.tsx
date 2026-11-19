@@ -60,7 +60,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
                   {section.bullets && <ul>{section.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul>}
                   {section.steps && <ol>{section.steps.map((step) => <li key={step}>{step}</li>)}</ol>}
                   {section.callout && <CtaCallout>{section.callout}</CtaCallout>}
-                  {index === 1 && (
+                  {index === 1 && guide.screenshot && (
                     <figure className="article-screenshot">
                       <img src={guide.screenshot.src} alt={guide.screenshot.alt} width={guide.screenshot.width} height={guide.screenshot.height} loading="lazy" />
                       <figcaption>{guide.screenshot.caption}</figcaption>

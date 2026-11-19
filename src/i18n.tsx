@@ -40,10 +40,14 @@ export function localizedScreenshot(locale: Locale, src: string) {
 const technicalKeys = new Set(["slug", "guideSlug", "related", "src", "href", "reviewed"]);
 function translateData<T>(value: T, locale: Locale, key = ""): T {
   if (technicalKeys.has(key)) return value;
-  if (typeof value === "string") return translate(locale, value) as T;
+  // Links written inside article text ("/report/", "/guides/…") point to the same language version.
+  if (typeof value === "string") return (locale === "en" ? value : translate(locale, value).replace(/href="\/(?!(?:es|fr|de|it|pl)\/)/g, `href="/${locale}/`)) as T;
   if (Array.isArray(value)) return value.map(item => translateData(item, locale, key)) as T;
   if (value && typeof value === "object") {
     const translated = Object.fromEntries(Object.entries(value).map(([field, item]) => [field, translateData(item, locale, field)]));
+    if (typeof translated.src === "string" && translated.src.startsWith("/assets/og/og-report-en.")) {
+      translated.src = translated.src.replace("og-report-en.", `og-report-${locale}.`);
+    }
     if (typeof translated.src === "string" && translated.src.startsWith("/assets/screenshots/")) {
       Object.assign(translated, localizedScreenshot(locale, translated.src));
     }

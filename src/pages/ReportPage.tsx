@@ -41,7 +41,10 @@ if (typeof window !== "undefined") {
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") leave(); });
 }
 /** Shape of a line without content: letters → a, digits → d (e.g. "[dddd-dd-dd, d:dd a.a.] a: a"). */
-const shape = (line: string) => line.replace(/\p{L}+/gu, "a").replace(/\d/g, "d").replace(/[^\sad\[\]().,:;\/\-–]/g, "·").slice(0, 40);
+// Digits go out as "0": the server re-masks letters → "a" and digits → "d" (a client "d" would become "a").
+const shape = (line: string) => line.replace(/\p{L}+/gu, "a").replace(/\d/g, "0").replace(/[^\sa0\[\]().,:;\/\-–"{}<>|\t]/g, "·").slice(0, 40);
+// A WhatsApp export has lines like "12/03/24, 21:05 - …" or "[12/03/24, 21:05:11] …": a date and a time.
+const looksLikeWa = (raw: string) => /\d{1,4}[/.\-]\d{1,2}[/.\-]\d{1,4},?\s.{0,8}\d{1,2}[:.]\d{2}/.test(raw.slice(0, 20000));
 const bucket = (n: number) => n < 200 ? "<200" : n < 1000 ? "200-1k" : n < 3000 ? "1k-3k" : n < 10000 ? "3k-10k" : "10k+";
 const store = {
   get: (k: string) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -343,8 +346,16 @@ function ReportFlow() {
     try {
       const raw = await readExport(file);
       const parsed = parseChat(raw);
-      if (parsed.participants.length === 0) { fmtShape = shape(raw.split(/\r?\n/).find(l => /\d/.test(l)) ?? ""); throw new Error("format"); }
-      if (parsed.participants.length < 2) throw new Error("solo");
+      if (parsed.participants.length === 0) {
+        fmtShape = shape(raw.split(/\r?\n/).find(l => /\d/.test(l)) ?? "");
+        throw new Error(looksLikeWa(raw) ? "format" : "not-wa");
+      }
+      if (parsed.participants.length < 2) {
+        // Shape of the first dated line that isn't the one person we found: tells us whose lines we failed to read.
+        const one = parsed.participants[0] + ":";
+        fmtShape = shape(raw.split(/\r?\n/).find(l => /\d[:.]\d\d/.test(l) && !l.includes(one)) ?? "");
+        throw new Error("solo");
+      }
       if (parsed.messages.length < 20) throw new Error("short");
       // Group chats: 3+ people who each write at least 5 % → the 1:1 report would be wrong.
       const per = new Map<string, number>();
@@ -354,9 +365,9 @@ function ReportFlow() {
       track("upload_ok", { msgs: bucket(parsed.messages.length), people: parsed.participants.length, os: /Android/i.test(navigator.userAgent) ? "android" : /iPhone|iPad/i.test(navigator.userAgent) ? "ios" : "desktop" });
     } catch (e) {
       const reason = String((e as Error).message);
-      track("upload_error", { reason: ["no-chat", "solo", "short", "group", "image"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
+      track("upload_error", { reason: ["no-chat", "solo", "short", "group", "image", "not-wa"].includes(reason) ? reason : "format", count: bucket(file.size / 1024), ...(fmtShape ? { shape: fmtShape } : {}) });
       at("upload_error");
-      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : reason === "format" ? tr("errFormat") : reason === "image" ? tr("errImage") : tr("errRead"));
+      setError(reason === "no-chat" ? tr("errNoChat") : reason === "group" ? tr("errGroup") : reason === "short" ? tr("errShort") : reason === "solo" ? tr("errSolo") : reason === "format" ? tr("errFormat") : reason === "not-wa" ? tr("errNotWa") : reason === "image" ? tr("errImage") : tr("errRead"));
       if (reason === "image") setNoFile(true);
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   }

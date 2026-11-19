@@ -40,13 +40,15 @@ function createRoutes(locale: Locale): Route[] {
   });
 
   const guidePageTitles: Record<string, string> = {
-    "how-to-analyze-text-messages": "How to Analyze Text Messages | Clarity Chat",
+    "how-to-analyze-text-messages": "How to Analyze Text Messages (5 Steps, Free Tool) | Clarity Chat",
     "ai-relationship-advice": "AI Relationship Advice: A Safer Second Opinion | Clarity Chat",
     "text-message-analyzer": "Text Message Analyzer: What Reports Show | Clarity Chat",
     "how-to-tell-if-someone-likes-you-over-text": "Signs Someone Likes You Over Text | Clarity Chat",
     "why-did-they-ghost-me": "Why Did They Ghost Me? | Clarity Chat",
     "gaslighting-in-text-messages": "Gaslighting Signs in Text Messages | Clarity Chat",
     "unhealthy-texting-patterns": "Unhealthy Texting Patterns | Clarity Chat",
+    "how-to-export-whatsapp-chat": "How to Export a WhatsApp Chat (iPhone & Android) | Clarity Chat",
+    "whatsapp-chat-statistics": "WhatsApp Chat Statistics: Free WhatsApp Wrapped | Clarity Chat",
   };
 
   return [
