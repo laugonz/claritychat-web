@@ -327,7 +327,8 @@ function ReportFlow() {
     else if (!/iPhone|iPad|Mobile/i.test(navigator.userAgent) && matchMedia("(min-width: 900px)").matches) setOs("desktop");
   }, []);
 
-  /** "Try it with an example chat": made-up chat (es / it; other languages get the Spanish one with their example's names). */
+  /** "Try it with an example chat": made-up chat (es / it; other languages get the Spanish one with their example's names).
+   *  Its button was taken off the landing on 2026-11-20: 0 of 3 who tried it uploaded their own chat (10 of 45 who didn't). */
   async function startDemo() {
     track("sample_open", { from: "demo_start" }); setBusy(true); setError("");
     try {
@@ -409,7 +410,6 @@ function ReportFlow() {
                 <VisualSteps os={os} />
                 <p className="rp-how-tip" dangerouslySetInnerHTML={{ __html: tr(os === "ios" ? "iosTip" : "andTip") }} />
               </div>}
-              <button className="rp-btn rp-ghost rp-demo-btn" disabled={busy} onClick={startDemo}>{tr("demoBtn")}</button>
               {error && <p className="rp-error" role="alert" ref={el => { el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}>{error}</p>}
               <ul className="rp-ladder"><li dangerouslySetInnerHTML={{ __html: tr("ladderFree") }} /><li dangerouslySetInnerHTML={{ __html: tr("ladderPaid") }} /></ul>
               <div className="rp-demo-mobile" aria-hidden="true"><DemoPhone /></div>
