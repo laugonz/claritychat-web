@@ -129,6 +129,7 @@ function ReportFlow() {
   const [counts, setCounts] = useState<Record<string, Record<string, number>> | undefined>();
   const [reportError, setReportError] = useState("");
   const [paying, setPaying] = useState(false);
+  const wentToPay = useRef(false);
   const [finishing, setFinishing] = useState(false);
   const [payNote, setPayNote] = useState("");          // back from Stripe without paying   // paid, the full chapters are still being written
   const [payError, setPayError] = useState("");
@@ -282,7 +283,12 @@ function ReportFlow() {
   // Browser "back" from Stripe restores this page from the back/forward cache with the button still
   // saying "opening payment…" and disabled. Re-enable it so they can try again.
   useEffect(() => {
-    const onShow = (e: PageTransitionEvent) => { if (e.persisted) { setPaying(false); track("checkout_cancel", { from: "back" }); } };
+    // Only count it as "back from payment" if they actually went to Stripe (back from the sample also restores the page).
+    const onShow = (e: PageTransitionEvent) => {
+      if (!e.persisted) return;
+      setPaying(false);
+      if (wentToPay.current) { wentToPay.current = false; track("checkout_cancel", { from: "back" }); }
+    };
     window.addEventListener("pageshow", onShow);
     return () => window.removeEventListener("pageshow", onShow);
   }, []);
@@ -308,7 +314,7 @@ function ReportFlow() {
     try {
       const r = await fetch(`${API}/chat/report/${reportId}/checkout`, { method: "POST" });
       const d = await r.json();
-      if (d.url) { location.href = d.url; return; }
+      if (d.url) { wentToPay.current = true; location.href = d.url; return; }
       if (d.paid) { poll(reportId); return; }
       throw new Error();
     } catch { setPayError(tr("errCheckout")); }
