@@ -495,6 +495,7 @@
 .rp-dark .rp-faq details{border:1px solid rgba(17,36,58,.08)}
 .rp-dark .rp-how{border:1px solid rgba(17,36,58,.08)}
 .rp-dark .rp-tabs button{background:var(--rp-navy-3)}
+.rp-dark .rp-tabs button[aria-selected="true"]{background:var(--rp-on);color:var(--rp-navy)}
 .rp-dark .rp-resume{border-color:rgba(20,126,137,.35)}
 .rp-dark .rp-nofile{background:rgba(66,197,202,.08)}
 @media (min-width:900px){.rp-at-setup{background:var(--rp-paper)}}
